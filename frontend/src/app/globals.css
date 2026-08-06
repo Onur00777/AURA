@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+:root {
+  --aura-bg: #080c0a;
+  --aura-bg-elevated: #0d1117;
+  --aura-surface: rgba(13, 17, 23, 0.72);
+  --aura-border: rgba(6, 78, 59, 0.3);
+  --aura-text: #e8e8ed;
+  --aura-muted: #8b8b9a;
+  --aura-accent: #10b981;
+  --aura-accent-glow: #22c55e;
+}
+
+@theme inline {
+  --color-background: var(--aura-bg);
+  --color-foreground: var(--aura-text);
+  --font-sans: var(--font-aura-sans), var(--font-aura-display), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-aura-mono), ui-monospace, monospace;
+  --font-display: var(--font-aura-display), var(--font-aura-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  * {
+    border-color: var(--aura-border);
+  }
+
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    background:
+      radial-gradient(1200px 600px at 50% -10%, rgba(16, 185, 129, 0.07), transparent 60%),
+      linear-gradient(180deg, #080c0a 0%, #0d1117 100%);
+    color: var(--aura-text);
+    min-height: 100dvh;
+  }
+
+  ::selection {
+    background: rgba(16, 185, 129, 0.35);
+    color: #fff;
+  }
+
+  /* Custom scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(16, 185, 129, 0.35) transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: rgba(16, 185, 129, 0.35);
+    border-radius: 999px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
