@@ -1,0 +1,22 @@
+# Python 3.9+ (3.10+ recommended)
+# AURA — Autonomous Universal Reasoning Assistant (terminal chat)
+
+# Core runtime
+aiohttp>=3.9.0         # Optional remote LLM providers
+python-dotenv>=1.0.0   # Environment-based configuration
+fastapi>=0.110.0       # Multi-model HTTP API
+uvicorn>=0.27.0        # ASGI server for server.py
+pydantic>=2.0.0        # Request/response models
+
+# Local LLM (no Ollama app required)
+llama-cpp-python>=0.2.90
+
+# Optional legacy audio stack (not used by terminal chat mode)
+# pyttsx3>=2.90
+# sounddevice>=0.4.6
+# numpy>=1.26.0
+# SpeechRecognition>=3.10.0
+# pocketsphinx>=5.0.3
+
+# Development
+typing-extensions>=4.9.0
