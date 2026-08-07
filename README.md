@@ -57,3 +57,8 @@ AURA/
 ├── server.py              # FastAPI backend sunucusu
 ├── requirements.txt       # Python bağımlılıkları
 └── README.md
+
+
+## ?? Tested Environments
+- macOS (M-series / Intel)
+- Windows 11 (ASUS Zenbook Duo - Python 3.12)
