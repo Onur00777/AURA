@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef } from "react";
 
+import { CopyMessageButton } from "@/components/chat/CopyMessageButton";
 import { MessageContent } from "@/components/chat/MessageContent";
 import { TypingIndicator } from "@/components/chat/TypingIndicator";
 import { WorkspaceHero } from "@/components/chat/WorkspaceHero";
@@ -74,6 +75,10 @@ export function MessageList({
                         <MessageContent content={message.content} />
                       </div>
                     )}
+                    <CopyMessageButton
+                      content={message.content}
+                      align={isUser ? "end" : "start"}
+                    />
                   </div>
                 </motion.div>
               );

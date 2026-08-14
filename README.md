@@ -61,6 +61,7 @@ AURA/
 
 ## 📝 Son Güncellemeler
 
+* **Mesaj kopyalama:** Sohbet balonlarının altına Copy butonu eklendi; kullanıcı ve asistan mesajları panoya tek tıkla kopyalanabiliyor.
 * **Dinamik karşılama mesajı:** Boş workspace ekranında sabit "Start a conversation" yerine, her sayfa yüklemesinde rastgele seçilen geliştirici odaklı İngilizce selamlamalar gösteriliyor (`WorkspaceHero`).
 
 ## Tested Environments
