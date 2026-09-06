@@ -41,7 +41,14 @@ export function useModels(): ModelsState {
         return data.models[0]?.name ?? "";
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load models");
+      const raw = err instanceof Error ? err.message : "Failed to load models";
+      const offline =
+        raw === "Failed to fetch" || raw.toLowerCase().includes("failed to fetch");
+      setError(
+        offline
+          ? "Backend is not running. From the AURA project root run: python server.py"
+          : raw,
+      );
       setModels([]);
     } finally {
       setLoading(false);

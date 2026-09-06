@@ -1,9 +1,10 @@
 import type { ChatRequest, ChatResponse, ModelsResponse } from "@/lib/types/api";
 
-const DEFAULT_API_URL = "http://127.0.0.1:8000";
-
 export function getApiBaseUrl(): string {
-  return process.env.NEXT_PUBLIC_AURA_API_URL?.replace(/\/$/, "") || DEFAULT_API_URL;
+  const explicit = process.env.NEXT_PUBLIC_AURA_API_URL?.replace(/\/$/, "");
+  if (explicit) return explicit;
+  // Same-origin via Next.js rewrite → FastAPI. Avoids CORS and dead 8000 fetches.
+  return "";
 }
 
 async function parseError(res: Response): Promise<string> {
@@ -27,29 +28,46 @@ async function parseError(res: Response): Promise<string> {
   return res.statusText || `Request failed (${res.status})`;
 }
 
-export async function fetchModels(): Promise<ModelsResponse> {
-  const res = await fetch(`${getApiBaseUrl()}/api/models`, {
-    method: "GET",
-    headers: { Accept: "application/json" },
-    cache: "no-store",
-  });
-  if (!res.ok) {
-    throw new Error(await parseError(res));
+function friendlyFetchError(err: unknown): Error {
+  if (err instanceof TypeError) {
+    return new Error(
+      "Backend is not running. From the AURA project root run: python server.py",
+    );
   }
-  return res.json() as Promise<ModelsResponse>;
+  return err instanceof Error ? err : new Error("Request failed");
+}
+
+export async function fetchModels(): Promise<ModelsResponse> {
+  try {
+    const res = await fetch(`${getApiBaseUrl()}/api/models`, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      throw new Error(await parseError(res));
+    }
+    return res.json() as Promise<ModelsResponse>;
+  } catch (err) {
+    throw friendlyFetchError(err);
+  }
 }
 
 export async function postChat(body: ChatRequest): Promise<ChatResponse> {
-  const res = await fetch(`${getApiBaseUrl()}/api/chat`, {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    throw new Error(await parseError(res));
+  try {
+    const res = await fetch(`${getApiBaseUrl()}/api/chat`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      throw new Error(await parseError(res));
+    }
+    return res.json() as Promise<ChatResponse>;
+  } catch (err) {
+    throw friendlyFetchError(err);
   }
-  return res.json() as Promise<ChatResponse>;
 }

@@ -35,9 +35,13 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`dark ${plusJakarta.variable} ${geist.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-[var(--aura-bg)] font-sans text-[var(--aura-text)]">
+      <body
+        suppressHydrationWarning
+        className="min-h-full bg-[var(--aura-bg)] font-sans text-[var(--aura-text)]"
+      >
         {children}
       </body>
     </html>
