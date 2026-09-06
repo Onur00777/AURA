@@ -57,3 +57,13 @@ AURA/
 ├── server.py              # FastAPI backend sunucusu
 ├── requirements.txt       # Python bağımlılıkları
 └── README.md
+```
+
+## 📝 Son Güncellemeler
+
+* **Mesaj kopyalama:** Sohbet balonlarının altına Copy butonu eklendi; kullanıcı ve asistan mesajları panoya tek tıkla kopyalanabiliyor.
+* **Dinamik karşılama mesajı:** Boş workspace ekranında sabit "Start a conversation" yerine, her sayfa yüklemesinde rastgele seçilen geliştirici odaklı İngilizce selamlamalar gösteriliyor (`WorkspaceHero`).
+
+## Tested Environments
+- macOS (M-series / Intel)
+- Windows 11 (ASUS Zenbook Duo - Python 3.12)

@@ -1,12 +1,31 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+
+const GREETINGS = [
+  "What shall we build today, Onur?",
+  "Ready to change the world?",
+  "Pick a model and let's craft something amazing.",
+  "AURA is online. What's on the agenda?",
+  "Let's turn complex ideas into code, Onur.",
+  "Ship something sharp today, Onur.",
+  "Your local models are standing by.",
+  "Ideas in. Code out. Where do we start?",
+] as const;
 
 type WorkspaceHeroProps = {
   modelLabel?: string;
 };
 
 export function WorkspaceHero({ modelLabel }: WorkspaceHeroProps) {
+  const [greeting, setGreeting] = useState<string>(GREETINGS[0]);
+
+  useEffect(() => {
+    const index = Math.floor(Math.random() * GREETINGS.length);
+    setGreeting(GREETINGS[index]);
+  }, []);
+
   return (
     <div className="m-auto flex w-full max-w-xl flex-col items-center px-4 py-16 text-center">
       <motion.div
@@ -25,7 +44,7 @@ export function WorkspaceHero({ modelLabel }: WorkspaceHeroProps) {
           AURA Workspace
         </p>
         <h2 className="mt-3 text-[1.75rem] font-semibold leading-tight tracking-[-0.045em] text-[#f2f2f5] sm:text-[2rem]">
-          Start a conversation
+          {greeting}
         </h2>
         <p className="mx-auto mt-3 max-w-sm text-[14px] leading-relaxed text-[#8b8b9a]">
           Messages stay on this device. Pick a model and type below — your
