@@ -1,0 +1,37 @@
+# CPU-only local stack. First build compiles llama.cpp (slow).
+# Mount your GGUF files into /app/models.
+#   docker compose up --build
+#
+# UI: http://localhost:3000  API: http://localhost:8000
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./models:/app/models
+    environment:
+      AURA_LLM_PROVIDER: local
+      AURA_LLM_N_CTX: "2048"
+      AURA_LLM_MAX_TOKENS: "256"
+      AURA_API_HOST: "0.0.0.0"
+
+  web:
+    image: node:22-alpine
+    working_dir: /app
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - web_modules:/app/node_modules
+    environment:
+      AURA_API_ORIGIN: http://api:8000
+    command: sh -c "npm install && npm run dev -- --hostname 0.0.0.0"
+    depends_on:
+      - api
+
+volumes:
+  web_modules:

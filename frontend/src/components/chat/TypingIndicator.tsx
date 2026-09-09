@@ -9,7 +9,7 @@ export function TypingIndicator() {
       aria-live="polite"
       aria-label="AURA is generating a response"
     >
-      <span className="flex h-6 w-6 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.03] text-[11px] font-semibold text-emerald-400">
+      <span className="flex h-6 w-6 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.03] font-pixel text-[8px] leading-none text-emerald-400">
         A
       </span>
       <div className="flex items-center gap-1.5 pt-1.5">

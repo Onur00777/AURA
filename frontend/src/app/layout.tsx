@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
+import { Geist, Geist_Mono, Plus_Jakarta_Sans, Press_Start_2P } from "next/font/google";
 import type { ReactNode } from "react";
 
 import "./globals.css";
@@ -22,6 +22,13 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
+const pressStart = Press_Start_2P({
+  variable: "--font-aura-pixel",
+  weight: "400",
+  subsets: ["latin"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "AURA",
   description: "Local multi-model chat interface for AURA",
@@ -36,11 +43,11 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`dark ${plusJakarta.variable} ${geist.variable} ${geistMono.variable} h-full antialiased`}
+      className={`dark ${plusJakarta.variable} ${geist.variable} ${geistMono.variable} ${pressStart.variable} h-full antialiased`}
     >
       <body
         suppressHydrationWarning
-        className="min-h-full bg-[var(--aura-bg)] font-sans text-[var(--aura-text)]"
+        className="min-h-full bg-[var(--aura-bg)] font-sans font-medium text-[var(--aura-text)]"
       >
         {children}
       </body>

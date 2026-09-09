@@ -46,7 +46,7 @@ export function useModels(): ModelsState {
         raw === "Failed to fetch" || raw.toLowerCase().includes("failed to fetch");
       setError(
         offline
-          ? "Backend is not running. From the AURA project root run: python server.py"
+          ? "Backend is not running. From the AURA project root run: python3 server.py"
           : raw,
       );
       setModels([]);

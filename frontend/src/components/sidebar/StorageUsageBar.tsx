@@ -1,6 +1,10 @@
 "use client";
 
-import { formatMb, type StorageSnapshot } from "@/lib/storage/quota";
+import {
+  formatStorageQuota,
+  formatStorageUsed,
+  type StorageSnapshot,
+} from "@/lib/storage/quota";
 
 type StorageUsageBarProps = {
   storage: StorageSnapshot;
@@ -20,15 +24,16 @@ function labelColor(percent: number): string {
 }
 
 export function StorageUsageBar({ storage, onAutoTrim }: StorageUsageBarProps) {
-  const { usedMb, quotaMb, percent } = storage;
+  const { usedBytes, quotaBytes, percent } = storage;
   const showWarning = percent > 85;
+  const barWidth = usedBytes <= 0 ? 0 : Math.max(2, Math.min(100, percent));
 
   return (
     <div className="space-y-2.5">
       {showWarning ? (
         <div className="rounded-lg border border-amber-500/25 bg-amber-500/10 px-2.5 py-2">
           <p className="text-[11px] leading-snug text-amber-100/90">
-            Storage is getting full. Free space by trimming old chats.
+            Browser chat cache is getting full. Trim old threads to free space.
           </p>
           <button
             type="button"
@@ -45,10 +50,10 @@ export function StorageUsageBar({ storage, onAutoTrim }: StorageUsageBarProps) {
           <span
             className={`font-mono text-[9px] uppercase tracking-[0.14em] ${labelColor(percent)}`}
           >
-            Storage
+            Chat cache
           </span>
           <span className="font-mono text-[9px] tracking-wide text-[#8b8b9a]">
-            {formatMb(usedMb)} MB / {formatMb(quotaMb)} MB ({Math.round(percent)}%)
+            {formatStorageUsed(usedBytes)} / {formatStorageQuota(quotaBytes)}
           </span>
         </div>
         <div
@@ -57,13 +62,16 @@ export function StorageUsageBar({ storage, onAutoTrim }: StorageUsageBarProps) {
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={Math.round(percent)}
-          aria-label="AURA localStorage usage"
+          aria-label="Browser localStorage used by AURA chats"
         >
           <div
             className={`h-full rounded-full transition-[width,background-color] duration-300 ${barColor(percent)}`}
-            style={{ width: `${Math.max(2, Math.min(100, percent))}%` }}
+            style={{ width: `${barWidth}%` }}
           />
         </div>
+        <p className="mt-1.5 font-mono text-[8px] leading-relaxed text-[#5c5c68]">
+          Not RAM. Text in this browser only (~5 MB cap).
+        </p>
       </div>
     </div>
   );

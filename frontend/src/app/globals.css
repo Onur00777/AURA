@@ -17,6 +17,7 @@
   --font-sans: var(--font-aura-sans), var(--font-aura-display), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-aura-mono), ui-monospace, monospace;
   --font-display: var(--font-aura-display), var(--font-aura-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-pixel: var(--font-aura-pixel), ui-monospace, monospace;
 }
 
 @layer base {

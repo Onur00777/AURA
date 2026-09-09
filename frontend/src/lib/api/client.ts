@@ -28,13 +28,26 @@ async function parseError(res: Response): Promise<string> {
   return res.statusText || `Request failed (${res.status})`;
 }
 
+function backendDownMessage(): string {
+  return "Backend is not running. From the AURA project root run: python3 server.py";
+}
+
 function friendlyFetchError(err: unknown): Error {
   if (err instanceof TypeError) {
-    return new Error(
-      "Backend is not running. From the AURA project root run: python server.py",
-    );
+    return new Error(backendDownMessage());
   }
-  return err instanceof Error ? err : new Error("Request failed");
+  if (err instanceof Error) {
+    const text = err.message.toLowerCase();
+    if (
+      text.includes("failed to fetch") ||
+      text === "internal server error" ||
+      text.includes("econnrefused")
+    ) {
+      return new Error(backendDownMessage());
+    }
+    return err;
+  }
+  return new Error("Request failed");
 }
 
 export async function fetchModels(): Promise<ModelsResponse> {

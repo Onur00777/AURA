@@ -3,12 +3,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { postChat } from "@/lib/api/client";
-import {
-  AURA_STORAGE,
-  getStorageSnapshot,
-  type StorageSnapshot,
-} from "@/lib/storage/quota";
+import { getStorageSnapshot, type StorageSnapshot } from "@/lib/storage/quota";
 import type { ChatMessage } from "@/lib/types/api";
+import { storageKeysFor, type AuraMode } from "@/lib/workspace/mode";
 
 export type ChatSession = {
   id: string;
@@ -35,9 +32,10 @@ function createSession(): ChatSession {
   };
 }
 
-function loadSessions(): ChatSession[] {
+function loadSessions(mode: AuraMode): ChatSession[] {
+  const keys = storageKeysFor(mode);
   try {
-    const raw = localStorage.getItem(AURA_STORAGE.sessions);
+    const raw = localStorage.getItem(keys.sessions);
     if (!raw) return [createSession()];
     const parsed = JSON.parse(raw) as ChatSession[];
     if (!Array.isArray(parsed) || parsed.length === 0) return [createSession()];
@@ -47,9 +45,10 @@ function loadSessions(): ChatSession[] {
   }
 }
 
-function loadActiveId(sessions: ChatSession[]): string {
+function loadActiveId(mode: AuraMode, sessions: ChatSession[]): string {
+  const keys = storageKeysFor(mode);
   try {
-    const saved = localStorage.getItem(AURA_STORAGE.activeId);
+    const saved = localStorage.getItem(keys.activeId);
     if (saved && sessions.some((s) => s.id === saved)) return saved;
   } catch {
     /* ignore */
@@ -64,7 +63,7 @@ function toApiMessages(messages: ChatMessage[]) {
     .map(({ role, content }) => ({ role, content }));
 }
 
-export function useChatSessions(selectedModel: string) {
+export function useChatSessions(selectedModel: string, mode: AuraMode) {
   const [sessions, setSessions] = useState<ChatSession[]>(() => [createSession()]);
   const [activeId, setActiveId] = useState<string>("");
   const [generating, setGenerating] = useState(false);
@@ -72,29 +71,37 @@ export function useChatSessions(selectedModel: string) {
   const [hydrated, setHydrated] = useState(false);
   const [storageTick, setStorageTick] = useState(0);
   const sessionsRef = useRef(sessions);
+  const loadedModeRef = useRef<AuraMode | null>(null);
 
   useEffect(() => {
     sessionsRef.current = sessions;
   }, [sessions]);
 
   useEffect(() => {
-    const loaded = loadSessions();
+    setGenerating(false);
+    const loaded = loadSessions(mode);
     setSessions(loaded);
-    setActiveId(loadActiveId(loaded));
+    setActiveId(loadActiveId(mode, loaded));
+    loadedModeRef.current = mode;
+    setError(null);
     setHydrated(true);
-  }, []);
+  }, [mode]);
 
   useEffect(() => {
     if (!hydrated) return;
-    localStorage.setItem(AURA_STORAGE.sessions, JSON.stringify(sessions));
+    if (loadedModeRef.current !== mode) return;
+    const keys = storageKeysFor(mode);
+    localStorage.setItem(keys.sessions, JSON.stringify(sessions));
     setStorageTick((n) => n + 1);
-  }, [sessions, hydrated]);
+  }, [sessions, hydrated, mode]);
 
   useEffect(() => {
     if (!hydrated || !activeId) return;
-    localStorage.setItem(AURA_STORAGE.activeId, activeId);
+    if (loadedModeRef.current !== mode) return;
+    const keys = storageKeysFor(mode);
+    localStorage.setItem(keys.activeId, activeId);
     setStorageTick((n) => n + 1);
-  }, [activeId, hydrated]);
+  }, [activeId, hydrated, mode]);
 
   const storage: StorageSnapshot = useMemo(() => {
     void storageTick;
@@ -201,6 +208,7 @@ export function useChatSessions(selectedModel: string) {
         const result = await postChat({
           model: selectedModel,
           messages: toApiMessages(conversation),
+          mode,
         });
         const assistantMessage: ChatMessage = {
           id: createId(),
@@ -209,6 +217,7 @@ export function useChatSessions(selectedModel: string) {
           modelUsed: result.model_used,
         };
         const withReply = [...conversation, assistantMessage];
+        const keys = storageKeysFor(mode);
 
         setSessions((prev) => {
           const next = prev.map((session) =>
@@ -220,7 +229,7 @@ export function useChatSessions(selectedModel: string) {
                 }
               : session,
           );
-          localStorage.setItem(AURA_STORAGE.sessions, JSON.stringify(next));
+          localStorage.setItem(keys.sessions, JSON.stringify(next));
           return next;
         });
       } catch (err) {
@@ -250,7 +259,7 @@ export function useChatSessions(selectedModel: string) {
         setGenerating(false);
       }
     },
-    [activeId, generating, selectedModel],
+    [activeId, generating, mode, selectedModel],
   );
 
   return {

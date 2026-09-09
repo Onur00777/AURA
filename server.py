@@ -14,8 +14,9 @@ Run:
 from __future__ import annotations
 
 import logging
+import os
 from contextlib import asynccontextmanager
-from typing import Any, List
+from typing import Any, List, Literal
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -33,6 +34,27 @@ _manager = MultiModelManager(_config.llm)
 AURA_CHAT_SYSTEM_PROMPT = (
     "You are AURA, an intelligent AI assistant. "
     "Always maintain context from previous turns."
+)
+
+AURA_ENGINEERING_SYSTEM_PROMPT = (
+    "You are AURA CompE (beta): a Computer Engineering teaching assistant. "
+    "You only tutor CE: C/C++, data structures, algorithms, computer organization, "
+    "OS, networks, databases, digital logic, embedded systems, software engineering.\n"
+    "RULES:\n"
+    "1. Match the user's language (Turkish or English). Keep answers compact.\n"
+    "2. Be factually conservative. If unsure, say so. Never invent fake taxonomies "
+    "(e.g. do NOT call arrays '2D structures' vs pointers '1D').\n"
+    "3. Off-topic (sports, cooking, celebrities, general chit-chat): first sentence "
+    "must be that this is CompE mode and you will not answer that topic; then offer "
+    "one CE-related door if any. Do not answer the off-topic question itself.\n"
+    "4. Homework: hints and a small example, not a full graded solution.\n"
+    "5. Core facts you must not contradict:\n"
+    "- In C, an array is a contiguous block of elements; a pointer is a variable "
+    "that stores an address. Arrays are not pointers, though they decay to a "
+    "pointer to the first element in many expressions.\n"
+    "- A context switch is the OS saving one thread/process register state and "
+    "loading another so the CPU can run a different task.\n"
+    "Do not repeat the same sentence. Remember prior turns in this thread."
 )
 
 
@@ -83,6 +105,10 @@ class ChatRequest(BaseModel):
         min_length=1,
         description="Full active-session history including the latest user turn",
     )
+    mode: Literal["general", "engineering"] = Field(
+        default="general",
+        description="Workspace persona: general chat or Computer Engineering (beta)",
+    )
 
 
 class ChatResponse(BaseModel):
@@ -118,14 +144,17 @@ async def post_chat(request: ChatRequest) -> ChatResponse:
         (m.get("role") or "").strip().lower() == "system" for m in formatted
     )
     if not has_system:
-        formatted = [
-            {"role": "system", "content": AURA_CHAT_SYSTEM_PROMPT},
-            *formatted,
-        ]
+        system = (
+            AURA_ENGINEERING_SYSTEM_PROMPT
+            if request.mode == "engineering"
+            else AURA_CHAT_SYSTEM_PROMPT
+        )
+        formatted = [{"role": "system", "content": system}, *formatted]
 
     logger.info(
-        "Chat request model=%s turns=%d",
+        "Chat request model=%s mode=%s turns=%d",
         request.model,
+        request.mode,
         len(formatted),
     )
 
@@ -162,8 +191,8 @@ def main() -> None:
 
     uvicorn.run(
         "server:app",
-        host="127.0.0.1",
-        port=8000,
+        host=os.getenv("AURA_API_HOST", "127.0.0.1"),
+        port=int(os.getenv("AURA_API_PORT", "8000")),
         reload=False,
         log_level="info",
     )
