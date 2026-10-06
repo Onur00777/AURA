@@ -2,7 +2,7 @@
 
 # AURA
 
-Local GGUF chat UI. Runs on **your machine**. Not a hosted product.
+Local GGUF chat UI. Runs on **your machine**. Not a hosted product. **Your AI!**
 
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 
