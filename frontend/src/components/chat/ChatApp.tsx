@@ -56,13 +56,17 @@ export function ChatApp() {
 
   return (
     <motion.div
-      className="relative flex h-dvh overflow-hidden bg-[#080C0A]"
+      className="relative flex h-dvh overflow-hidden bg-[#050505]"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.28, ease: "easeOut" }}
     >
       <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,rgba(16,185,129,0.06),transparent)]"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(#ffffff0a_1px,transparent_1px)] [background-size:16px_16px] [mask-image:radial-gradient(ellipse_90%_70%_at_50%_0%,#000_40%,transparent_100%)]"
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute -top-40 left-1/2 h-[420px] w-[720px] -translate-x-1/2 rounded-full bg-emerald-500/5 blur-[120px]"
         aria-hidden
       />
 
@@ -120,6 +124,8 @@ export function ChatApp() {
           modelLabel={
             selectedModel ? getModelShortName(selectedModel) : undefined
           }
+          canSend={canSend}
+          onQuickAction={sendMessage}
         />
 
         <ChatInput

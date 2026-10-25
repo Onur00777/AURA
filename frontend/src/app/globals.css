@@ -1,14 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --aura-bg: #080c0a;
-  --aura-bg-elevated: #0d1117;
-  --aura-surface: rgba(13, 17, 23, 0.72);
-  --aura-border: rgba(6, 78, 59, 0.3);
-  --aura-text: #e8e8ed;
-  --aura-muted: #8b8b9a;
-  --aura-accent: #10b981;
-  --aura-accent-glow: #22c55e;
+  --aura-bg: #050505;
+  --aura-bg-elevated: #0c0c0e;
+  --aura-surface: rgba(12, 12, 14, 0.9);
+  --aura-border: rgba(255, 255, 255, 0.06);
+  --aura-text: #ededef;
+  --aura-muted: #8a8a93;
+  --aura-accent: #00ff41;
+  --aura-accent-glow: #10b981;
 }
 
 @theme inline {
@@ -30,32 +30,34 @@
   }
 
   body {
-    background:
-      radial-gradient(1200px 600px at 50% -10%, rgba(16, 185, 129, 0.07), transparent 60%),
-      linear-gradient(180deg, #080c0a 0%, #0d1117 100%);
+    background: var(--aura-bg);
     color: var(--aura-text);
     min-height: 100dvh;
   }
 
   ::selection {
-    background: rgba(16, 185, 129, 0.35);
+    background: rgba(0, 255, 65, 0.22);
     color: #fff;
   }
 
   /* Custom scrollbar */
   * {
     scrollbar-width: thin;
-    scrollbar-color: rgba(16, 185, 129, 0.35) transparent;
+    scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
   }
 
   *::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
   }
 
   *::-webkit-scrollbar-thumb {
-    background: rgba(16, 185, 129, 0.35);
+    background: rgba(255, 255, 255, 0.1);
     border-radius: 999px;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 255, 65, 0.3);
   }
 
   *::-webkit-scrollbar-track {

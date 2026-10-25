@@ -96,18 +96,18 @@ export function ModelSelector({
           setOpen((v) => !v);
           setInfoFor(null);
         }}
-        className="group flex w-full items-center justify-between gap-3 rounded-xl border border-emerald-900/40 bg-[#0D1117]/80 px-3.5 py-2 text-left transition-colors hover:border-emerald-500/40 hover:bg-emerald-950/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 disabled:cursor-not-allowed disabled:opacity-50"
+        className="group flex w-full items-center justify-between gap-3 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-left shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)] transition-colors hover:border-white/[0.14] hover:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40 disabled:cursor-not-allowed disabled:opacity-50"
       >
         <div className="min-w-0">
-          <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-emerald-500/80">
+          <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-zinc-500">
             Model
           </p>
-          <p className="truncate text-xs font-medium tracking-tight text-[#e8e8ed]">
+          <p className="truncate text-xs font-medium tracking-tight text-zinc-100">
             {label}
           </p>
         </div>
         <svg
-          className={`h-4 w-4 shrink-0 text-emerald-400/70 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          className={`h-3.5 w-3.5 shrink-0 text-zinc-500 transition-transform duration-200 group-hover:text-zinc-300 ${open ? "rotate-180" : ""}`}
           viewBox="0 0 20 20"
           fill="currentColor"
           aria-hidden
@@ -130,7 +130,7 @@ export function ModelSelector({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="absolute right-0 z-50 mt-2 w-[min(100vw-2rem,18rem)] overflow-visible rounded-xl border border-emerald-900/40 bg-[#0A0E0C]/95 p-1.5 shadow-[0_16px_40px_rgba(0,0,0,0.55)] backdrop-blur-xl"
+            className="absolute right-0 z-50 mt-2 w-[min(100vw-2rem,18rem)] overflow-visible rounded-xl border border-white/[0.08] bg-[#0c0c0e]/95 p-1 shadow-[0_16px_40px_rgba(0,0,0,0.65),inset_0_1px_0_0_rgba(255,255,255,0.06)] backdrop-blur-xl"
           >
             {models.map((model) => {
               const active = model.name === selectedModel;
@@ -147,8 +147,8 @@ export function ModelSelector({
                   <div
                     className={`flex items-center gap-1 rounded-lg transition-colors ${
                       active
-                        ? "bg-emerald-500/15 text-emerald-300"
-                        : "text-[#e8e8ed] hover:bg-emerald-950/60 hover:text-emerald-200"
+                        ? "bg-white/[0.06] text-white"
+                        : "text-zinc-300 hover:bg-white/[0.04] hover:text-white"
                     }`}
                   >
                     <button

@@ -57,11 +57,14 @@ export function Sidebar({
   const recent = [...sessions].sort((a, b) => b.updatedAt - a.updatedAt);
 
   const panel = (
-    <aside className="flex h-full w-[280px] shrink-0 flex-col border-r border-white/[0.06] bg-[#0A0D0B]/95 backdrop-blur-2xl">
-      <div className="border-b border-white/[0.05] px-4 pb-4 pt-5">
-        <p className="mb-3 font-pixel text-[8px] uppercase leading-none tracking-[0.18em] text-emerald-400/90">
-          AURA
-        </p>
+    <aside className="flex h-full w-[248px] shrink-0 flex-col border-r border-white/[0.06] bg-[#080808]/90 backdrop-blur-xl">
+      <div className="px-3 pb-3 pt-4">
+        <div className="mb-3.5 flex items-center gap-2 px-1">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#00FF41] shadow-[0_0_6px_rgba(0,255,65,0.7)]" aria-hidden />
+          <p className="font-pixel text-[8px] uppercase leading-none tracking-[0.18em] text-zinc-300">
+            AURA
+          </p>
+        </div>
         <ModeToggle
           mode={mode}
           disabled={generating}
@@ -73,15 +76,25 @@ export function Sidebar({
             onNewChat();
             onCloseMobile();
           }}
-          className="group mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-500/40 bg-transparent px-3 py-2.5 text-[13px] font-medium tracking-tight text-emerald-300 transition-all duration-200 hover:border-emerald-400/70 hover:bg-emerald-500/[0.08] hover:shadow-[0_0_24px_rgba(16,185,129,0.18)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/40"
+          className="group mt-2.5 flex h-9 w-full items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.04] px-2.5 text-xs font-medium text-zinc-200 transition-all hover:bg-white/[0.08] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40"
         >
-          <span className="text-base leading-none text-emerald-400">+</span>
+          <svg
+            viewBox="0 0 24 24"
+            className="h-3.5 w-3.5 text-[#00FF41]"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            aria-hidden
+          >
+            <path d="M12 5v14M5 12h14" />
+          </svg>
           New Chat
         </button>
       </div>
 
-      <div className="px-4 pb-2 pt-4">
-        <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#6e6e7a]">
+      <div className="px-4 pb-1.5 pt-2">
+        <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-zinc-600">
           {mode === "engineering" ? "CompE · Recent" : "Recent"}
         </p>
       </div>
@@ -98,19 +111,19 @@ export function Sidebar({
                     onSelectChat(session.id);
                     onCloseMobile();
                   }}
-                  className={`flex w-full items-center gap-2 rounded-lg py-2 pl-2.5 pr-9 text-left transition-colors duration-150 ${
+                  className={`flex w-full items-center gap-2 rounded-md py-1.5 pl-2.5 pr-9 text-left transition-colors duration-150 ${
                     active
-                      ? "bg-white/[0.06] text-[#f0f0f3]"
-                      : "text-[#9a9aa6] hover:bg-white/[0.03] hover:text-[#d8d8e0]"
+                      ? "bg-white/[0.06] text-white"
+                      : "text-zinc-400 hover:bg-white/[0.03] hover:text-zinc-200"
                   }`}
                 >
                   <span
-                    className={`h-1.5 w-1.5 shrink-0 rounded-full ${
-                      active ? "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.7)]" : "bg-[#3a3a44]"
+                    className={`h-1 w-1 shrink-0 rounded-full ${
+                      active ? "bg-[#00FF41] shadow-[0_0_6px_rgba(0,255,65,0.7)]" : "bg-zinc-700"
                     }`}
                     aria-hidden
                   />
-                  <span className="min-w-0 flex-1 truncate text-[13px] tracking-tight">
+                  <span className="min-w-0 flex-1 truncate text-[12.5px] tracking-tight">
                     {session.title}
                   </span>
                 </button>
@@ -121,7 +134,7 @@ export function Sidebar({
                     e.stopPropagation();
                     onDeleteChat(session.id);
                   }}
-                  className="absolute right-1.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-[#5c5c68] opacity-0 transition-all hover:bg-red-500/10 hover:text-red-300 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/40"
+                  className="absolute right-1 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-zinc-600 opacity-0 transition-all hover:bg-red-500/10 hover:text-red-300 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/40"
                 >
                   <TrashIcon className="h-3.5 w-3.5" />
                 </button>
@@ -131,7 +144,7 @@ export function Sidebar({
         </ul>
       </nav>
 
-      <div className="border-t border-white/[0.06] p-3.5">
+      <div className="border-t border-white/[0.06] p-3">
         <StorageUsageBar storage={storage} onAutoTrim={onAutoTrim} />
       </div>
     </aside>
@@ -156,9 +169,9 @@ export function Sidebar({
             />
             <motion.div
               className="fixed inset-y-0 left-0 z-50 md:hidden"
-              initial={{ x: -288 }}
+              initial={{ x: -256 }}
               animate={{ x: 0 }}
-              exit={{ x: -288 }}
+              exit={{ x: -256 }}
               transition={{ duration: 0.24, ease: "easeOut" }}
             >
               {panel}

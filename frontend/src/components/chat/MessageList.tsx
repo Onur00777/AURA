@@ -15,6 +15,8 @@ type MessageListProps = {
   generating: boolean;
   modelLabel?: string;
   mode?: AuraMode;
+  canSend?: boolean;
+  onQuickAction?: (prompt: string) => void;
 };
 
 export function MessageList({
@@ -22,6 +24,8 @@ export function MessageList({
   generating,
   modelLabel,
   mode = "general",
+  canSend = false,
+  onQuickAction,
 }: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -34,7 +38,12 @@ export function MessageList({
   return (
     <div className="flex flex-1 flex-col overflow-y-auto px-4 py-4 sm:px-8">
       {empty ? (
-        <WorkspaceHero modelLabel={modelLabel} mode={mode} />
+        <WorkspaceHero
+          modelLabel={modelLabel}
+          mode={mode}
+          canSend={canSend}
+          onQuickAction={onQuickAction}
+        />
       ) : (
         <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 pb-4">
           <AnimatePresence initial={false}>
@@ -68,7 +77,7 @@ export function MessageList({
                     ) : null}
 
                     {isUser ? (
-                      <div className="rounded-2xl border border-emerald-500/15 bg-[#0D1117] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
+                      <div className="rounded-xl border border-white/[0.08] bg-[#0c0c0e] px-4 py-3 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
                         <p className="whitespace-pre-wrap text-[14.5px] leading-[1.65] text-[#e8e8ed]">
                           {message.content}
                         </p>

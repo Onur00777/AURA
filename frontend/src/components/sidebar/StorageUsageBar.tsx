@@ -12,15 +12,15 @@ type StorageUsageBarProps = {
 };
 
 function barColor(percent: number): string {
-  if (percent > 90) return "bg-red-500";
-  if (percent > 75) return "bg-amber-400";
-  return "bg-emerald-400";
+  if (percent > 90) return "bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.7)]";
+  if (percent > 75) return "bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.6)]";
+  return "bg-[#00FF41] shadow-[0_0_6px_rgba(0,255,65,0.7)]";
 }
 
-function labelColor(percent: number): string {
-  if (percent > 90) return "text-red-300";
-  if (percent > 75) return "text-amber-300";
-  return "text-emerald-400/90";
+function statusColor(percent: number): string {
+  if (percent > 90) return "text-red-400";
+  if (percent > 75) return "text-amber-400";
+  return "text-[#00FF41]";
 }
 
 export function StorageUsageBar({ storage, onAutoTrim }: StorageUsageBarProps) {
@@ -45,19 +45,18 @@ export function StorageUsageBar({ storage, onAutoTrim }: StorageUsageBarProps) {
         </div>
       ) : null}
 
-      <div>
-        <div className="mb-1.5 flex items-center justify-between gap-2">
-          <span
-            className={`font-mono text-[9px] uppercase tracking-[0.14em] ${labelColor(percent)}`}
-          >
+      <div className="rounded-lg border border-white/[0.05] bg-black/30 px-2.5 py-2 font-mono">
+        <div className="mb-2 flex items-center justify-between gap-2 text-[9px] uppercase tracking-[0.16em]">
+          <span className="flex items-center gap-1.5 text-zinc-500">
+            <span className={`h-1 w-1 rounded-full ${barColor(percent)}`} aria-hidden />
             Chat cache
           </span>
-          <span className="font-mono text-[9px] tracking-wide text-[#8b8b9a]">
-            {formatStorageUsed(usedBytes)} / {formatStorageQuota(quotaBytes)}
+          <span className={`tabular-nums ${statusColor(percent)}`}>
+            {percent.toFixed(1).padStart(4, "0")}%
           </span>
         </div>
         <div
-          className="h-1 overflow-hidden rounded-full bg-white/[0.06]"
+          className="h-px bg-white/[0.08]"
           role="progressbar"
           aria-valuemin={0}
           aria-valuemax={100}
@@ -65,13 +64,18 @@ export function StorageUsageBar({ storage, onAutoTrim }: StorageUsageBarProps) {
           aria-label="Browser localStorage used by AURA chats"
         >
           <div
-            className={`h-full rounded-full transition-[width,background-color] duration-300 ${barColor(percent)}`}
+            className={`h-full transition-[width,background-color] duration-300 ${barColor(percent)}`}
             style={{ width: `${barWidth}%` }}
           />
         </div>
-        <p className="mt-1.5 font-mono text-[8px] leading-relaxed text-[#5c5c68]">
-          Not RAM. Text in this browser only (~5 MB cap).
-        </p>
+        <div className="mt-2 flex items-center justify-between text-[9px] tabular-nums text-zinc-500">
+          <span>
+            {formatStorageUsed(usedBytes)}
+            <span className="text-zinc-700"> / </span>
+            {formatStorageQuota(quotaBytes)}
+          </span>
+          <span className="uppercase tracking-[0.14em] text-zinc-700">localStorage</span>
+        </div>
       </div>
     </div>
   );

@@ -4,6 +4,7 @@ const API_ORIGIN =
   process.env.AURA_API_ORIGIN?.replace(/\/$/, "") || "http://127.0.0.1:8000";
 
 const nextConfig: NextConfig = {
+  devIndicators: false,
   async rewrites() {
     return [
       {
