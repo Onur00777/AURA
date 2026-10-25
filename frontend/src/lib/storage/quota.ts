@@ -49,6 +49,13 @@ export function getStorageSnapshot(): StorageSnapshot {
   };
 }
 
-export function formatMb(mb: number): string {
-  return mb < 0.1 ? mb.toFixed(2) : mb.toFixed(1);
+/** Human label for chat cache size (KB until 1 MB so the meter is not stuck at 0.00). */
+export function formatStorageUsed(bytes: number): string {
+  if (bytes < 1024) return `${Math.max(0, bytes)} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+}
+
+export function formatStorageQuota(bytes: number): string {
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }

@@ -14,10 +14,14 @@ export type ModelsResponse = {
   };
 };
 
+export type ChatMode = "general" | "engineering";
+
 export type ChatRequest = {
   model: string;
   /** Full active-session history including the latest user turn. */
   messages: Array<{ role: ChatRole; content: string }>;
+  /** Selects the server system prompt. Default: general. */
+  mode?: ChatMode;
 };
 
 export type ChatResponse = {

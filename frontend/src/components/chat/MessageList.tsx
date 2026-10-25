@@ -8,17 +8,20 @@ import { MessageContent } from "@/components/chat/MessageContent";
 import { TypingIndicator } from "@/components/chat/TypingIndicator";
 import { WorkspaceHero } from "@/components/chat/WorkspaceHero";
 import type { ChatMessage } from "@/lib/types/api";
+import type { AuraMode } from "@/lib/workspace/mode";
 
 type MessageListProps = {
   messages: ChatMessage[];
   generating: boolean;
   modelLabel?: string;
+  mode?: AuraMode;
 };
 
 export function MessageList({
   messages,
   generating,
   modelLabel,
+  mode = "general",
 }: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -31,7 +34,7 @@ export function MessageList({
   return (
     <div className="flex flex-1 flex-col overflow-y-auto px-4 py-4 sm:px-8">
       {empty ? (
-        <WorkspaceHero modelLabel={modelLabel} />
+        <WorkspaceHero modelLabel={modelLabel} mode={mode} />
       ) : (
         <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 pb-4">
           <AnimatePresence initial={false}>
@@ -50,10 +53,10 @@ export function MessageList({
                   >
                     {!isUser ? (
                       <div className="mb-2 flex items-center gap-2">
-                        <span className="flex h-6 w-6 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.03] text-[11px] font-semibold text-emerald-400">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.03] font-pixel text-[8px] leading-none text-emerald-400">
                           A
                         </span>
-                        <span className="text-[12px] font-medium tracking-tight text-[#c8c8d0]">
+                        <span className="font-pixel text-[8px] leading-none tracking-tight text-[#c8c8d0]">
                           AURA
                         </span>
                         {message.modelUsed ? (

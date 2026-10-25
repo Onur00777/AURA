@@ -2,15 +2,20 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 
+import { ModeToggle } from "@/components/sidebar/ModeToggle";
 import { StorageUsageBar } from "@/components/sidebar/StorageUsageBar";
 import type { ChatSession } from "@/hooks/useChatSessions";
 import type { StorageSnapshot } from "@/lib/storage/quota";
+import type { AuraMode } from "@/lib/workspace/mode";
 
 type SidebarProps = {
   open: boolean;
+  mode: AuraMode;
   sessions: ChatSession[];
   activeId: string;
   storage: StorageSnapshot;
+  generating: boolean;
+  onModeChange: (mode: AuraMode) => void;
   onNewChat: () => void;
   onSelectChat: (id: string) => void;
   onDeleteChat: (id: string) => void;
@@ -37,9 +42,12 @@ function TrashIcon({ className = "" }: { className?: string }) {
 
 export function Sidebar({
   open,
+  mode,
   sessions,
   activeId,
   storage,
+  generating,
+  onModeChange,
   onNewChat,
   onSelectChat,
   onDeleteChat,
@@ -51,16 +59,21 @@ export function Sidebar({
   const panel = (
     <aside className="flex h-full w-[280px] shrink-0 flex-col border-r border-white/[0.06] bg-[#0A0D0B]/95 backdrop-blur-2xl">
       <div className="border-b border-white/[0.05] px-4 pb-4 pt-5">
-        <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.18em] text-[#6e6e7a]">
+        <p className="mb-3 font-pixel text-[8px] uppercase leading-none tracking-[0.18em] text-emerald-400/90">
           AURA
         </p>
+        <ModeToggle
+          mode={mode}
+          disabled={generating}
+          onChange={onModeChange}
+        />
         <button
           type="button"
           onClick={() => {
             onNewChat();
             onCloseMobile();
           }}
-          className="group flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-500/40 bg-transparent px-3 py-2.5 text-[13px] font-medium tracking-tight text-emerald-300 transition-all duration-200 hover:border-emerald-400/70 hover:bg-emerald-500/[0.08] hover:shadow-[0_0_24px_rgba(16,185,129,0.18)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/40"
+          className="group mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-500/40 bg-transparent px-3 py-2.5 text-[13px] font-medium tracking-tight text-emerald-300 transition-all duration-200 hover:border-emerald-400/70 hover:bg-emerald-500/[0.08] hover:shadow-[0_0_24px_rgba(16,185,129,0.18)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/40"
         >
           <span className="text-base leading-none text-emerald-400">+</span>
           New Chat
@@ -69,7 +82,7 @@ export function Sidebar({
 
       <div className="px-4 pb-2 pt-4">
         <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#6e6e7a]">
-          Recent
+          {mode === "engineering" ? "CompE · Recent" : "Recent"}
         </p>
       </div>
 

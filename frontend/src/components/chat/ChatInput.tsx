@@ -9,13 +9,21 @@ import {
   type KeyboardEvent,
 } from "react";
 
+import type { AuraMode } from "@/lib/workspace/mode";
+
 type ChatInputProps = {
   disabled: boolean;
   generating: boolean;
+  mode?: AuraMode;
   onSend: (text: string) => void;
 };
 
-export function ChatInput({ disabled, generating, onSend }: ChatInputProps) {
+export function ChatInput({
+  disabled,
+  generating,
+  mode = "general",
+  onSend,
+}: ChatInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const resize = useCallback(() => {
@@ -64,7 +72,9 @@ export function ChatInput({ disabled, generating, onSend }: ChatInputProps) {
             placeholder={
               disabled
                 ? "Select a model to begin…"
-                : "Message AURA…"
+                : mode === "engineering"
+                  ? "Ask a Computer Engineering question…"
+                  : "Message AURA…"
             }
             disabled={disabled || generating}
             onInput={resize}

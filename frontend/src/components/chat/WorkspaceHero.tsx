@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
+import type { AuraMode } from "@/lib/workspace/mode";
+
 const GREETINGS = [
   "What shall we build today, Onur?",
   "Ready to change the world?",
@@ -14,17 +16,29 @@ const GREETINGS = [
   "Ideas in. Code out. Where do we start?",
 ] as const;
 
+const ENGINEERING_GREETINGS = [
+  "Where should we go deeper — OS, networks, or the ISA?",
+  "Ask like a CE student. I'll teach like a TA, not a search box.",
+  "Pointers, pipelines, protocols — pick a layer.",
+  "Let's reason through the hardware–software boundary.",
+] as const;
+
 type WorkspaceHeroProps = {
   modelLabel?: string;
+  mode?: AuraMode;
 };
 
-export function WorkspaceHero({ modelLabel }: WorkspaceHeroProps) {
+export function WorkspaceHero({
+  modelLabel,
+  mode = "general",
+}: WorkspaceHeroProps) {
   const [greeting, setGreeting] = useState<string>(GREETINGS[0]);
 
   useEffect(() => {
-    const index = Math.floor(Math.random() * GREETINGS.length);
-    setGreeting(GREETINGS[index]);
-  }, []);
+    const next = mode === "engineering" ? ENGINEERING_GREETINGS : GREETINGS;
+    const index = Math.floor(Math.random() * next.length);
+    setGreeting(next[index]);
+  }, [mode]);
 
   return (
     <div className="m-auto flex w-full max-w-xl flex-col items-center px-4 py-16 text-center">
@@ -35,20 +49,23 @@ export function WorkspaceHero({ modelLabel }: WorkspaceHeroProps) {
         className="w-full"
       >
         <div className="mx-auto mb-8 flex h-12 w-12 items-center justify-center rounded-2xl border border-white/[0.08] bg-white/[0.03]">
-          <span className="text-lg font-semibold tracking-tight text-emerald-400">
+          <span className="font-pixel text-[12px] leading-none text-emerald-400">
             A
           </span>
         </div>
 
-        <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#6e6e7a]">
-          AURA Workspace
+        <p className="font-pixel text-[8px] uppercase leading-relaxed tracking-[0.18em] text-[#6e6e7a]">
+          {mode === "engineering"
+            ? "CompE · Beta"
+            : "AURA"}
         </p>
-        <h2 className="mt-3 text-[1.75rem] font-semibold leading-tight tracking-[-0.045em] text-[#f2f2f5] sm:text-[2rem]">
+        <h2 className="mt-3 font-display text-[1.75rem] font-bold leading-tight tracking-[-0.045em] text-[#f2f2f5] sm:text-[2rem]">
           {greeting}
         </h2>
         <p className="mx-auto mt-3 max-w-sm text-[14px] leading-relaxed text-[#8b8b9a]">
-          Messages stay on this device. Pick a model and type below — your
-          sessions restore automatically.
+          {mode === "engineering"
+            ? "This thread is separate from General. Answers stay inside Computer Engineering — from first year through architecture, OS, and networks."
+            : "Messages stay on this device. Pick a model and type below — your sessions restore automatically."}
         </p>
 
         <div className="mx-auto mt-8 flex flex-wrap items-center justify-center gap-2">
