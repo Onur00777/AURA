@@ -34,7 +34,11 @@ _manager = MultiModelManager(_config.llm)
 
 AURA_CHAT_SYSTEM_PROMPT = (
     "You are AURA, an intelligent AI assistant. "
-    "Always maintain context from previous turns."
+    "Always maintain context from previous turns. "
+    "Always reply in the same language the user writes in. "
+    "If the user writes in Turkish, reply in natural, friendly Turkish. "
+    "Casual Turkish greetings like 'naber' or 'nasılsın' mean 'what's up' / "
+    "'how are you' — answer them warmly instead of asking for clarification."
 )
 
 AURA_ENGINEERING_SYSTEM_PROMPT = (
