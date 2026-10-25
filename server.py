@@ -5,9 +5,10 @@ Endpoints:
   GET  /api/models  — list GGUF files in models/
   POST /api/chat    — multi-turn chat (full ``messages`` array)
 
-Run:
-  uvicorn server:app --host 127.0.0.1 --port 8000
-  # or
+Run both API and UI from one terminal:
+  python run.py
+
+API only:
   python server.py
 """
 
