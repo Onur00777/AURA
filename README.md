@@ -94,4 +94,11 @@ Chats live in the browser. The GGUF uses **RAM/CPU** when loaded — that is sep
 - macOS (Intel / Apple Silicon)
 - Windows 11 (Python 3.12)
 
+## Son değişiklikler
+
+26 Ekim 2026 notu:
+
+- Genel sohbet, kullanıcının yazdığı dilde yanıt veriyor. Türkçe selamlar (`naber`, `nasılsın`) açıklama istemeden sıcak karşılanıyor.
+- Çalışma alanı Linear tarzı koyu temayla yenilendi: kenar çubuğu, sohbet alanı, mesajlar ve model seçici aynı görsel dile çekildi.
+
 MIT licensed. Issues and PRs welcome; treat this as an early local demo, not a production assistant.
