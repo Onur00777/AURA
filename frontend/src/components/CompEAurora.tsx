@@ -7,7 +7,7 @@ type AuroraKeyframes =
   | "aura-drift-a"
   | "aura-drift-b"
   | "aura-drift-c"
-  | "aura-curtain";
+  | "aura-drift-d";
 
 type AuroraLayer = {
   id: string;
@@ -22,82 +22,83 @@ type AuroraLayer = {
   duration: number;
   delay: number;
   direction?: "alternate" | "alternate-reverse";
-  rounded?: string;
 };
 
 const EASE = "cubic-bezier(0.4, 0, 0.2, 1)";
 
-const orb = (color: string) =>
-  `radial-gradient(closest-side, ${color}, transparent)`;
+/**
+ * Bright core stays near the top. Depth comes from the tail: a short ellipse
+ * dies early, a tall one keeps a faint column going.
+ */
+const pillar = (color: string, focal: number) =>
+  `radial-gradient(ellipse 82% 100% at 50% ${focal}%, ${color} 0%, transparent 92%)`;
 
 const LAYERS: AuroraLayer[] = [
   {
     id: "ocean",
-    background: orb("#0ea5e9"),
-    left: "-18%",
-    top: "-38%",
-    width: "clamp(300px, 56vw, 780px)",
-    aspectRatio: "1 / 0.72",
-    opacity: 0.4,
+    background: pillar("#0ea5e9", 16),
+    left: "-16%",
+    top: "-14%",
+    width: "clamp(300px, 48vw, 700px)",
+    aspectRatio: "1 / 0.6",
+    opacity: 0.55,
     blur: 110,
     keyframes: "aura-drift-a",
     duration: 18,
-    delay: -4,
+    delay: -5,
   },
   {
     id: "emerald",
-    background: orb("#10b981"),
-    left: "30%",
-    top: "-44%",
-    width: "clamp(280px, 50vw, 720px)",
-    aspectRatio: "1 / 0.68",
-    opacity: 0.38,
+    background: pillar("#10b981", 30),
+    left: "14%",
+    top: "-6%",
+    width: "clamp(250px, 36vw, 560px)",
+    aspectRatio: "1 / 1.65",
+    opacity: 0.52,
     blur: 120,
     keyframes: "aura-drift-b",
-    duration: 20,
-    delay: -9,
+    duration: 24,
+    delay: -11,
+  },
+  {
+    id: "violet",
+    background: pillar("#8b5cf6", 34),
+    left: "32%",
+    top: "-2%",
+    width: "clamp(190px, 24vw, 380px)",
+    aspectRatio: "1 / 1.2",
+    opacity: 0.32,
+    blur: 140,
+    keyframes: "aura-drift-d",
+    duration: 21,
+    delay: -8,
   },
   {
     id: "teal",
-    background: orb("#14b8a6"),
-    left: "54%",
-    top: "-30%",
-    width: "clamp(240px, 42vw, 620px)",
-    aspectRatio: "1 / 0.7",
-    opacity: 0.3,
-    blur: 130,
+    background: pillar("#14b8a6", 24),
+    left: "46%",
+    top: "-10%",
+    width: "clamp(230px, 34vw, 520px)",
+    aspectRatio: "1 / 1.1",
+    opacity: 0.48,
+    blur: 120,
     keyframes: "aura-drift-c",
     duration: 15,
-    delay: -2,
+    delay: -3,
   },
   {
     id: "cyan",
-    background: orb("#06b6d4"),
-    left: "74%",
-    top: "-46%",
-    width: "clamp(240px, 44vw, 620px)",
-    aspectRatio: "1 / 0.75",
-    opacity: 0.34,
+    background: pillar("#06b6d4", 14),
+    left: "68%",
+    top: "-16%",
+    width: "clamp(240px, 36vw, 540px)",
+    aspectRatio: "1 / 0.72",
+    opacity: 0.5,
     blur: 100,
     keyframes: "aura-drift-a",
     duration: 13,
     delay: -6,
     direction: "alternate-reverse",
-  },
-  {
-    id: "curtain",
-    background:
-      "linear-gradient(90deg, #0ea5e9 0%, #14b8a6 35%, #10b981 60%, #06b6d4 100%)",
-    left: "-20%",
-    top: "-12%",
-    width: "140%",
-    aspectRatio: "1 / 0.16",
-    opacity: 0.25,
-    blur: 140,
-    keyframes: "aura-curtain",
-    duration: 17,
-    delay: -7,
-    rounded: "50%",
   },
 ];
 
@@ -109,7 +110,8 @@ function layerStyle(layer: AuroraLayer, paused: boolean): CSSProperties {
     aspectRatio: layer.aspectRatio,
     opacity: layer.opacity,
     background: layer.background,
-    borderRadius: layer.rounded ?? "9999px",
+    borderRadius: "9999px",
+    transformOrigin: "center top",
     filter: `blur(${layer.blur}px)`,
     animationName: layer.keyframes,
     animationDuration: `${layer.duration}s`,
@@ -145,7 +147,7 @@ export function CompEAurora({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.9, ease: [0.4, 0, 0.2, 1] }}
-          className={`pointer-events-none absolute inset-x-0 top-0 z-0 isolate h-[clamp(320px,62vh,640px)] overflow-hidden [mask-image:linear-gradient(to_bottom,black_30%,transparent_100%)] ${className}`}
+          className={`aura-veil pointer-events-none absolute inset-x-0 top-0 z-0 isolate h-[clamp(520px,82vh,920px)] overflow-hidden ${className}`}
         >
           {LAYERS.map((layer) => (
             <div
