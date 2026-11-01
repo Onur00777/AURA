@@ -65,6 +65,122 @@
   }
 }
 
+/* Uneven veil: lobes die at different depths, so there is no flat horizon. */
+.aura-veil {
+  -webkit-mask-image:
+    radial-gradient(ellipse 58% 72% at 14% -10%, #000 38%, transparent 90%),
+    radial-gradient(ellipse 48% 112% at 58% -16%, #000 44%, transparent 92%),
+    radial-gradient(ellipse 38% 80% at 88% -6%, #000 34%, transparent 88%);
+  mask-image:
+    radial-gradient(ellipse 58% 72% at 14% -10%, #000 38%, transparent 90%),
+    radial-gradient(ellipse 48% 112% at 58% -16%, #000 44%, transparent 92%),
+    radial-gradient(ellipse 38% 80% at 88% -6%, #000 34%, transparent 88%);
+  -webkit-mask-composite: source-over, source-over;
+  mask-composite: add, add;
+}
+
+/* Quiet resting glass. Drop the class to return to a flat surface. */
+.aura-glass {
+  background: rgba(10, 10, 12, 0.94);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+/* Aurora rim. Paused until the parent group is hovered or focused. */
+.aura-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 220%;
+  aspect-ratio: 1;
+  z-index: 0;
+  pointer-events: none;
+  background: conic-gradient(
+    from 0deg,
+    #0ea5e9 0%,
+    #06b6d4 20%,
+    #14b8a6 40%,
+    #10b981 62%,
+    #8b5cf6 82%,
+    #0ea5e9 100%
+  );
+  opacity: 0;
+  transform: translate(-50%, -50%);
+  animation: aura-spin 9s linear infinite;
+  animation-play-state: paused;
+  transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.group:hover > .aura-ring,
+.group:focus-visible > .aura-ring,
+.group:focus-within > .aura-ring {
+  opacity: 0.9;
+  animation-play-state: running;
+}
+
+.group:disabled > .aura-ring,
+.group:disabled:hover > .aura-ring {
+  opacity: 0;
+  animation-play-state: paused;
+}
+
+@keyframes aura-spin {
+  to {
+    transform: translate(-50%, -50%) rotate(1turn);
+  }
+}
+
+/* CompE aurora: transform-only so drift stays on the compositor thread.
+   Origin is the top edge, so scaleY breathes downward. */
+@keyframes aura-drift-a {
+  0% {
+    transform: translate3d(-6%, 0, 0) scale(1, 0.9);
+  }
+  50% {
+    transform: translate3d(7%, 4%, 0) scale(1.08, 1.06);
+  }
+  100% {
+    transform: translate3d(3%, -2%, 0) scale(0.96, 0.94);
+  }
+}
+
+@keyframes aura-drift-b {
+  0% {
+    transform: translate3d(4%, -2%, 0) scale(0.98, 0.86);
+  }
+  50% {
+    transform: translate3d(-7%, 6%, 0) scale(1.06, 1.22);
+  }
+  100% {
+    transform: translate3d(-2%, 2%, 0) scale(1.1, 0.96);
+  }
+}
+
+@keyframes aura-drift-c {
+  0% {
+    transform: translate3d(2%, 2%, 0) scale(1.04, 0.9);
+  }
+  50% {
+    transform: translate3d(-8%, -2%, 0) scale(0.94, 1.1);
+  }
+  100% {
+    transform: translate3d(6%, 5%, 0) scale(1.06, 0.98);
+  }
+}
+
+@keyframes aura-drift-d {
+  0% {
+    transform: translate3d(-10%, 2%, 0) scale(0.92, 1.04);
+  }
+  50% {
+    transform: translate3d(9%, 7%, 0) scale(1.12, 0.9);
+  }
+  100% {
+    transform: translate3d(1%, -4%, 0) scale(1, 1.16);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

@@ -156,7 +156,9 @@ export function WorkspaceHero({
         </div>
 
         <div className="mx-auto mt-8 grid w-full max-w-2xl grid-cols-1 gap-2 text-left sm:grid-cols-3">
-          {QUICK_ACTIONS.map((action, index) => (
+          {QUICK_ACTIONS.map((action, index) => {
+            const engineering = mode === "engineering";
+            return (
             <motion.button
               key={action.title}
               type="button"
@@ -165,21 +167,37 @@ export function WorkspaceHero({
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.28, ease: "easeOut", delay: 0.08 + index * 0.05 }}
-              className="group relative flex flex-col items-start gap-2 overflow-hidden rounded-xl text-left border border-white/[0.06] bg-white/[0.02] p-3 transition-all duration-200 hover:border-emerald-500/30 hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-white/[0.06] disabled:hover:bg-white/[0.02]"
+              className={`group relative flex overflow-hidden rounded-xl text-left focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40 ${
+                engineering ? "bg-white/[0.08] p-[1.5px]" : ""
+              }`}
             >
+              {engineering ? <span aria-hidden className="aura-ring" /> : null}
+              <span
+                className={`relative flex w-full flex-col items-start gap-2 rounded-[11px] p-3 ${
+                  engineering
+                    ? "aura-glass relative z-[1]"
+                    : "border border-white/[0.06] bg-white/[0.02] transition-all duration-200 group-hover:border-emerald-500/30 group-hover:bg-white/[0.04] group-disabled:group-hover:border-white/[0.06] group-disabled:group-hover:bg-white/[0.02]"
+                }`}
+              >
+              {engineering ? null : (
               <span
                 className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-[#00FF41]/40 to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100"
                 aria-hidden
               />
-              <span className="flex h-6 w-6 items-center justify-center rounded-md border border-white/[0.08] bg-white/[0.03] text-zinc-400 transition-colors group-hover:text-[#00FF41]">
+              )}
+              <span className={`flex h-6 w-6 items-center justify-center rounded-md border border-white/[0.08] bg-white/[0.03] text-zinc-400 transition-colors ${
+                engineering ? "group-hover:text-[#99f6e4]" : "group-hover:text-[#00FF41]"
+              }`}>
                 {action.icon}
               </span>
               <span className="text-[12.5px] font-medium leading-snug tracking-tight text-zinc-200">
                 {action.title}
               </span>
               <span className="font-mono text-[10px] text-zinc-500">{action.hint}</span>
+              </span>
             </motion.button>
-          ))}
+            );
+          })}
         </div>
       </motion.div>
     </div>
