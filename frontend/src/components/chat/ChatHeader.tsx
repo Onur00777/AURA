@@ -41,9 +41,9 @@ export function ChatHeader({
           </button>
 
           <div className="flex min-w-0 items-center gap-2.5">
-            <div className="relative hidden h-7 w-7 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.03] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.12)] sm:flex">
-              <span className="font-pixel text-[7px] leading-none text-[#00FF41]">
-                A
+            <div className="relative hidden h-7 shrink-0 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.03] px-2.5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.12)] sm:flex">
+              <span className="font-pixel text-[7px] leading-none tracking-[0.12em] text-[#00FF41]">
+                AURA
               </span>
               <span
                 className={`absolute -right-0.5 -top-0.5 h-1.5 w-1.5 rounded-full ${
@@ -79,6 +79,7 @@ export function ChatHeader({
           selectedModel={selectedModel}
           loading={loading}
           error={error}
+          aurora={mode === "engineering"}
           onSelect={onSelectModel}
         />
       </div>

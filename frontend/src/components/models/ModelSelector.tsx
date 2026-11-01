@@ -11,6 +11,8 @@ type ModelSelectorProps = {
   selectedModel: string;
   loading: boolean;
   error: string | null;
+  /** Aurora rim + halo on hover (CompE). Off restores the plain trigger. */
+  aurora?: boolean;
   onSelect: (name: string) => void;
 };
 
@@ -46,6 +48,7 @@ export function ModelSelector({
   selectedModel,
   loading,
   error,
+  aurora = false,
   onSelect,
 }: ModelSelectorProps) {
   const [open, setOpen] = useState(false);
@@ -96,10 +99,20 @@ export function ModelSelector({
           setOpen((v) => !v);
           setInfoFor(null);
         }}
-        className="peer group relative z-[1] flex w-full overflow-hidden rounded-lg bg-white/[0.08] p-[1.5px] text-left focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+        className={
+          aurora
+            ? "peer group relative z-[1] flex w-full overflow-hidden rounded-lg bg-white/[0.08] p-[1.5px] text-left focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+            : "group flex w-full items-center justify-between gap-3 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-left shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)] transition-colors hover:border-white/[0.14] hover:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40 disabled:cursor-not-allowed disabled:opacity-50"
+        }
       >
-        <span aria-hidden className="aura-ring" />
-        <span className="aura-glass relative z-[1] flex w-full items-center justify-between gap-3 rounded-[7px] px-3 py-1.5">
+        {aurora ? <span aria-hidden className="aura-ring" /> : null}
+        <span
+          className={
+            aurora
+              ? "aura-glass relative z-[1] flex w-full items-center justify-between gap-3 rounded-[7px] px-3 py-1.5"
+              : "contents"
+          }
+        >
         <div className="min-w-0">
           <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-zinc-500">
             Model
@@ -123,9 +136,11 @@ export function ModelSelector({
         </span>
       </button>
       {/* Soft aurora light behind the trigger; driven by the peer button. */}
-      <span aria-hidden className="aura-halo">
-        <span className="aura-ring" />
-      </span>
+      {aurora ? (
+        <span aria-hidden className="aura-halo">
+          <span className="aura-ring" />
+        </span>
+      ) : null}
 
       <AnimatePresence>
         {open && models.length > 0 ? (

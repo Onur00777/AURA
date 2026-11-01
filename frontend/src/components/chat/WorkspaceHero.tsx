@@ -87,12 +87,14 @@ type WorkspaceHeroProps = {
 
 function Emblem() {
   return (
-    <div className="relative mx-auto mb-7 h-14 w-14">
+    <div className="relative mx-auto mb-7 inline-flex h-14 items-center justify-center">
       <div className="absolute inset-0 rounded-2xl bg-[#00FF41]/10 blur-xl" aria-hidden />
-      <div className="absolute inset-0 rotate-6 rounded-2xl border border-white/[0.05] bg-white/[0.02]" aria-hidden />
-      <div className="relative flex h-full w-full items-center justify-center rounded-2xl border border-white/[0.1] bg-linear-to-b from-white/[0.08] to-white/[0.02] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)] backdrop-blur-xl">
-        <span className="font-pixel text-[12px] leading-none text-white">A</span>
-        <span className="absolute right-2 top-2 flex h-1.5 w-1.5" aria-hidden>
+      <div className="absolute inset-0 rotate-3 rounded-2xl border border-white/[0.05] bg-white/[0.02]" aria-hidden />
+      <div className="relative flex h-full items-center justify-center rounded-2xl border border-white/[0.1] bg-linear-to-b from-white/[0.08] to-white/[0.02] px-6 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)] backdrop-blur-xl">
+        <span className="font-pixel text-[12px] leading-none tracking-[0.14em] text-white">
+          AURA
+        </span>
+        <span className="absolute right-2.5 top-2.5 flex h-1.5 w-1.5" aria-hidden>
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#00FF41] opacity-60" />
           <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#00FF41] shadow-[0_0_6px_rgba(0,255,65,0.8)]" />
         </span>
