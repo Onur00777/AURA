@@ -65,6 +65,55 @@
   }
 }
 
+/* CompE aurora: transform-only so drift stays on the compositor thread. */
+@keyframes aura-drift-a {
+  0% {
+    transform: translate3d(-8%, -6%, 0) scale(1, 1);
+  }
+  50% {
+    transform: translate3d(6%, 8%, 0) scale(1.18, 0.88);
+  }
+  100% {
+    transform: translate3d(14%, -2%, 0) scale(0.94, 1.12);
+  }
+}
+
+@keyframes aura-drift-b {
+  0% {
+    transform: translate3d(10%, 0, 0) scale(1.08, 0.92);
+  }
+  50% {
+    transform: translate3d(-6%, 10%, 0) scale(0.9, 1.14);
+  }
+  100% {
+    transform: translate3d(-14%, -4%, 0) scale(1.16, 0.96);
+  }
+}
+
+@keyframes aura-drift-c {
+  0% {
+    transform: translate3d(0, 6%, 0) scale(0.92, 1.06);
+  }
+  50% {
+    transform: translate3d(-12%, -4%, 0) scale(1.14, 0.9);
+  }
+  100% {
+    transform: translate3d(8%, 4%, 0) scale(1, 1.18);
+  }
+}
+
+@keyframes aura-curtain {
+  0% {
+    transform: translate3d(-6%, 0, 0) rotate(-4deg) scale(1, 0.9);
+  }
+  50% {
+    transform: translate3d(3%, 10%, 0) rotate(2deg) scale(1.06, 1.25);
+  }
+  100% {
+    transform: translate3d(7%, -4%, 0) rotate(-1deg) scale(0.98, 1);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
+import { CompEAurora } from "@/components/CompEAurora";
 import { ApiErrorBanner } from "@/components/chat/ApiErrorBanner";
 import { ChatHeader } from "@/components/chat/ChatHeader";
 import { ChatInput } from "@/components/chat/ChatInput";
@@ -86,54 +87,58 @@ export function ChatApp() {
       />
 
       <div className="relative z-10 flex min-w-0 flex-1 flex-col">
-        <ChatHeader
-          models={models}
-          selectedModel={selectedModel}
-          loading={modelsLoading}
-          error={modelsError}
-          online={!modelsError && !modelsLoading}
-          mode={mode}
-          onSelectModel={setSelectedModel}
-          onToggleSidebar={() => setSidebarOpen((v) => !v)}
-        />
+        <CompEAurora active={mode === "engineering"} paused={generating} />
 
-        {modelsError ? (
-          <ApiErrorBanner message={modelsError} onRetry={refreshModels} />
-        ) : !modelsLoading && models.length === 0 ? (
-          <div className="mx-4 mt-3 rounded-xl border border-amber-900/40 bg-amber-950/30 px-4 py-3 text-sm text-amber-100 sm:mx-6">
-            <p className="font-medium">No GGUF models found</p>
-            <p className="mt-1 text-[13px] leading-relaxed text-amber-200/80">
-              Put a chat-tuned <span className="font-mono">.gguf</span> file in{" "}
-              <span className="font-mono">models/</span>, then retry. The API
-              is up; it has nothing to load.
-            </p>
-            <button
-              type="button"
-              onClick={() => void refreshModels()}
-              className="mt-3 rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-1.5 text-[12px] font-medium text-amber-100"
-            >
-              Retry
-            </button>
-          </div>
-        ) : null}
+        <div className="relative z-10 flex min-h-0 flex-1 flex-col">
+          <ChatHeader
+            models={models}
+            selectedModel={selectedModel}
+            loading={modelsLoading}
+            error={modelsError}
+            online={!modelsError && !modelsLoading}
+            mode={mode}
+            onSelectModel={setSelectedModel}
+            onToggleSidebar={() => setSidebarOpen((v) => !v)}
+          />
 
-        <MessageList
-          messages={messages}
-          generating={generating}
-          mode={mode}
-          modelLabel={
-            selectedModel ? getModelShortName(selectedModel) : undefined
-          }
-          canSend={canSend}
-          onQuickAction={sendMessage}
-        />
+          {modelsError ? (
+            <ApiErrorBanner message={modelsError} onRetry={refreshModels} />
+          ) : !modelsLoading && models.length === 0 ? (
+            <div className="mx-4 mt-3 rounded-xl border border-amber-900/40 bg-amber-950/30 px-4 py-3 text-sm text-amber-100 sm:mx-6">
+              <p className="font-medium">No GGUF models found</p>
+              <p className="mt-1 text-[13px] leading-relaxed text-amber-200/80">
+                Put a chat-tuned <span className="font-mono">.gguf</span> file
+                in <span className="font-mono">models/</span>, then retry. The
+                API is up; it has nothing to load.
+              </p>
+              <button
+                type="button"
+                onClick={() => void refreshModels()}
+                className="mt-3 rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-1.5 text-[12px] font-medium text-amber-100"
+              >
+                Retry
+              </button>
+            </div>
+          ) : null}
 
-        <ChatInput
-          disabled={!canSend}
-          generating={generating}
-          mode={mode}
-          onSend={sendMessage}
-        />
+          <MessageList
+            messages={messages}
+            generating={generating}
+            mode={mode}
+            modelLabel={
+              selectedModel ? getModelShortName(selectedModel) : undefined
+            }
+            canSend={canSend}
+            onQuickAction={sendMessage}
+          />
+
+          <ChatInput
+            disabled={!canSend}
+            generating={generating}
+            mode={mode}
+            onSend={sendMessage}
+          />
+        </div>
       </div>
     </motion.div>
   );
