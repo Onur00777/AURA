@@ -247,7 +247,7 @@ function renderInline(rawText: string) {
       );
     } else if (token.startsWith("**")) {
       nodes.push(
-        <strong key={`b-${key++}`} className="font-semibold text-[#f4f4f7]">
+        <strong key={`b-${key++}`} className="font-bold text-white">
           {token.slice(2, -2)}
         </strong>,
       );
@@ -263,6 +263,60 @@ function renderInline(rawText: string) {
 
   if (last < text.length) nodes.push(text.slice(last));
   return nodes;
+}
+
+/**
+ * Gemini-style list item rendering: if a list item starts with a subheading
+ * label like "Quicksort: ..." (even without **bold**), render the "Quicksort:"
+ * prefix in bold white so terms stand out cleanly.
+ */
+function renderListItemContent(rawItem: string): ReactNode {
+  const trimmed = rawItem.trim();
+
+  // Already starts with **bold**
+  if (trimmed.startsWith("**")) {
+    return renderInline(trimmed);
+  }
+
+  // Starts with a short plain label before a colon, e.g. "Quicksort: Average time..."
+  const labelMatch = /^([A-Za-z0-9À-ž_+/()\- ]{1,38}):(?:\s+(.*))?$/.exec(trimmed);
+  if (labelMatch) {
+    const label = labelMatch[1].trim();
+    const rest = labelMatch[2] ?? "";
+    const wordCount = label.split(/\s+/).length;
+    if (wordCount <= 5) {
+      return (
+        <>
+          <strong className="font-bold text-white">{normalizeText(label)}:</strong>
+          {rest ? <> {renderInline(rest)}</> : null}
+        </>
+      );
+    }
+  }
+
+  return renderInline(trimmed);
+}
+
+function isListLine(line: string): boolean {
+  const t = line.trim();
+  return /^[-*•]\s+.+$/.test(t) || /^\d+[.)]\s+.+$/.test(t);
+}
+
+function isStandaloneSectionTitle(lines: string[], index: number): boolean {
+  const current = lines[index].trim();
+  if (!current || current.length > 64) return false;
+  if (/^[#*•\-]/.test(current) || /^\d+[.)]\s/.test(current)) return false;
+  // Sentence-ending punctuation (. ! ?) means it's a normal sentence, not a title
+  if (/[.!?]$/.test(current)) return false;
+
+  // Look ahead for the next non-empty line; if it's a bullet/numbered list item,
+  // this short line is acting as a section heading (e.g. "Cache Behavior").
+  for (let next = index + 1; next < lines.length; next += 1) {
+    const peek = lines[next].trim();
+    if (!peek) continue;
+    return isListLine(peek);
+  }
+  return false;
 }
 
 function renderTextBlock(content: string, blockKey: number) {
@@ -286,7 +340,8 @@ function renderTextBlock(content: string, blockKey: number) {
     );
   }
 
-  for (const rawLine of lines) {
+  for (let i = 0; i < lines.length; i += 1) {
+    const rawLine = lines[i];
     const trimmed = rawLine.trim();
 
     if (!trimmed) {
@@ -299,19 +354,34 @@ function renderTextBlock(content: string, blockKey: number) {
     if (headingMatch) {
       flushParagraph();
       const level = headingMatch[1].length;
-      const headingText = headingMatch[2].replace(/\s*#+\s*$/, "");
+      const headingText = headingMatch[2].replace(/\s*#+\s*$/, "").replace(/^\*\*|\*\*$/g, "");
       const sizeClass =
         level === 1
-          ? "text-[17px] font-semibold text-white mt-4 mb-1.5"
+          ? "text-[17.5px] font-bold text-white mt-5 mb-1.5"
           : level === 2
-            ? "text-[15.5px] font-semibold text-white mt-3.5 mb-1"
-            : "text-[14.5px] font-semibold text-[#f4f4f7] mt-3 mb-1";
+            ? "text-[16px] font-bold text-white mt-4 mb-1.5"
+            : "text-[15px] font-bold text-white mt-4 mb-1";
       elements.push(
         <h3
           key={`h-${blockKey}-${key++}`}
           className={`${sizeClass} tracking-tight first:mt-0`}
         >
           {renderInline(headingText)}
+        </h3>,
+      );
+      continue;
+    }
+
+    // Unmarked section heading right before a list (e.g. "Cache Behavior")
+    if (isStandaloneSectionTitle(lines, i)) {
+      flushParagraph();
+      const cleanTitle = trimmed.replace(/^\*\*|\*\*$/g, "").replace(/:$/, "");
+      elements.push(
+        <h3
+          key={`sh-${blockKey}-${key++}`}
+          className="mt-4 mb-1 text-[15px] font-bold tracking-tight text-white first:mt-0"
+        >
+          {renderInline(cleanTitle)}
         </h3>,
       );
       continue;
@@ -327,10 +397,12 @@ function renderTextBlock(content: string, blockKey: number) {
           className="flex items-start gap-2.5 pl-1 text-[14.5px] leading-[1.7] text-[#e4e4ea]"
         >
           <span
-            className="mt-[10px] h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400/70"
+            className="mt-[10px] h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400/75"
             aria-hidden
           />
-          <div className="min-w-0 flex-1">{renderInline(bulletMatch[1])}</div>
+          <div className="min-w-0 flex-1">
+            {renderListItemContent(bulletMatch[1])}
+          </div>
         </div>,
       );
       continue;
@@ -345,10 +417,12 @@ function renderTextBlock(content: string, blockKey: number) {
           key={`ol-${blockKey}-${key++}`}
           className="flex items-start gap-2 pl-1 text-[14.5px] leading-[1.7] text-[#e4e4ea]"
         >
-          <span className="shrink-0 font-mono text-[12.5px] font-medium text-emerald-400/80">
+          <span className="shrink-0 font-mono text-[12.5px] font-semibold text-emerald-400/85">
             {orderedMatch[1]}.
           </span>
-          <div className="min-w-0 flex-1">{renderInline(orderedMatch[2])}</div>
+          <div className="min-w-0 flex-1">
+            {renderListItemContent(orderedMatch[2])}
+          </div>
         </div>,
       );
       continue;
