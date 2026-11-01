@@ -3,7 +3,6 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
-import { CompEAurora } from "@/components/CompEAurora";
 import { ApiErrorBanner } from "@/components/chat/ApiErrorBanner";
 import { ChatHeader } from "@/components/chat/ChatHeader";
 import { ChatInput } from "@/components/chat/ChatInput";
@@ -57,7 +56,7 @@ export function ChatApp() {
 
   return (
     <motion.div
-      className="relative flex h-dvh overflow-hidden bg-[#050505]"
+      className="relative flex h-dvh overflow-hidden bg-[#030305]"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.28, ease: "easeOut" }}
@@ -66,11 +65,6 @@ export function ChatApp() {
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(#ffffff0a_1px,transparent_1px)] [background-size:16px_16px] [mask-image:radial-gradient(ellipse_90%_70%_at_50%_0%,#000_40%,transparent_100%)]"
         aria-hidden
       />
-      <div
-        className="pointer-events-none absolute -top-40 left-1/2 h-[420px] w-[720px] -translate-x-1/2 rounded-full bg-emerald-500/5 blur-[120px]"
-        aria-hidden
-      />
-
       <Sidebar
         open={sidebarOpen}
         mode={mode}
@@ -87,7 +81,54 @@ export function ChatApp() {
       />
 
       <div className="relative z-10 flex min-w-0 flex-1 flex-col">
-        <CompEAurora active={mode === "engineering"} paused={generating} />
+        {mode === "engineering" ? (
+          <div className="pointer-events-none absolute inset-0 overflow-hidden bg-[#030305]">
+            {/* 1. Sol Üst - Zümrüt Yeşili Kuzey Işığı Şeridi */}
+            <div
+              className="absolute -top-[25%] -left-[10%] h-[550px] w-[70%] -rotate-12 rounded-full opacity-40 blur-[90px] mix-blend-screen will-change-transform animate-[aurora-drift-1_18s_ease-in-out_infinite]"
+              style={{
+                background:
+                  "radial-gradient(ellipse at center, #10b981 0%, #059669 35%, transparent 75%)",
+              }}
+            />
+
+            {/* 2. Orta Üst - Elektrik Mavisi / Cyan Geçiş Şeridi */}
+            <div
+              className="absolute -top-[30%] left-[20%] h-[500px] w-[60%] rotate-6 rounded-full opacity-35 blur-[100px] mix-blend-screen will-change-transform animate-[aurora-drift-2_24s_ease-in-out_infinite]"
+              style={{
+                background:
+                  "radial-gradient(ellipse at center, #06b6d4 0%, #2563eb 40%, transparent 75%)",
+              }}
+            />
+
+            {/* 3. Sağ Üst - Derin Mor / Violet Kuzey Işığı Şeridi */}
+            <div
+              className="absolute -top-[20%] -right-[10%] h-[600px] w-[65%] -rotate-6 rounded-full opacity-45 blur-[95px] mix-blend-screen will-change-transform animate-[aurora-drift-3_20s_ease-in-out_infinite]"
+              style={{
+                background:
+                  "radial-gradient(ellipse at center, #8b5cf6 0%, #6d28d9 40%, transparent 75%)",
+              }}
+            />
+
+            {/* 4. İkinci Katman - Kıvrımlı Parlak Yeşil-Mor Aurora Çizgisi */}
+            <div
+              className="absolute top-[5%] left-[15%] h-[220px] w-[70%] -rotate-3 rounded-full opacity-30 blur-[60px] mix-blend-screen will-change-transform animate-[pulse_10s_ease-in-out_infinite]"
+              style={{
+                background:
+                  "linear-gradient(90deg, transparent 0%, #10b981 25%, #06b6d4 50%, #a855f7 80%, transparent 100%)",
+              }}
+            />
+
+            {/* 5. Alt Karartma Maskesi (Ekranın ortasından aşağısını kesin olarak zifiri siyah tutar) */}
+            <div
+              className="absolute inset-0"
+              style={{
+                background:
+                  "linear-gradient(to bottom, transparent 0%, rgba(3,3,5,0.5) 45%, #030305 75%)",
+              }}
+            />
+          </div>
+        ) : null}
 
         <div className="relative z-10 flex min-h-0 flex-1 flex-col">
           <ChatHeader
