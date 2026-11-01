@@ -62,13 +62,27 @@ export function ChatInput({
     }
   }
 
+  const engineering = mode === "engineering";
+
   return (
     <div className="relative z-40 px-4 pb-5 sm:px-8">
       <div className="relative mx-auto max-w-3xl">
         <form
           onSubmit={handleSubmit}
-          className="group mx-auto max-w-3xl rounded-xl border border-white/[0.08] bg-[#0c0c0e]/90 px-2.5 pb-2 pt-1.5 shadow-[0_0_40px_-10px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.08)] backdrop-blur-2xl transition-all duration-200 focus-within:border-emerald-500/40"
+          className={`group relative mx-auto max-w-3xl overflow-hidden rounded-xl ${
+            engineering
+              ? "bg-white/[0.08] p-[1.5px]"
+              : "border border-white/[0.08] bg-[#0c0c0e]/90 px-2.5 pb-2 pt-1.5 shadow-[0_0_40px_-10px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.08)] backdrop-blur-2xl transition-all duration-200 focus-within:border-emerald-500/40"
+          }`}
         >
+          {engineering ? <span aria-hidden className="aura-ring" /> : null}
+          <div
+            className={
+              engineering
+                ? "aura-glass relative z-[1] rounded-[11px] px-2.5 pb-2 pt-1.5 shadow-[0_0_40px_-12px_rgba(0,0,0,0.8)]"
+                : "contents"
+            }
+          >
           <textarea
             ref={textareaRef}
             rows={1}
@@ -122,6 +136,7 @@ export function ChatInput({
                 </>
               )}
             </button>
+          </div>
           </div>
         </form>
       </div>
