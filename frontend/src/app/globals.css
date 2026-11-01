@@ -114,7 +114,8 @@
 
 .group:hover > .aura-ring,
 .group:focus-visible > .aura-ring,
-.group:focus-within > .aura-ring {
+.group:focus-within > .aura-ring,
+.group[aria-expanded="true"] > .aura-ring {
   opacity: 0.9;
   animation-play-state: running;
 }
@@ -123,6 +124,41 @@
 .group:disabled:hover > .aura-ring {
   opacity: 0;
   animation-play-state: paused;
+}
+
+/* Soft aurora light spilling around a control. Place it right after a
+   `.peer` element; it wakes with the same hover/focus/open state as the rim,
+   and spins in step with it because both share aura-spin. */
+.aura-halo {
+  position: absolute;
+  inset: -3px;
+  z-index: 0;
+  overflow: hidden;
+  border-radius: 12px;
+  pointer-events: none;
+  opacity: 0;
+  filter: blur(12px);
+  transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.aura-halo > .aura-ring {
+  opacity: 1;
+}
+
+.peer:hover ~ .aura-halo,
+.peer:focus-visible ~ .aura-halo,
+.peer[aria-expanded="true"] ~ .aura-halo {
+  opacity: 0.5;
+}
+
+.peer:hover ~ .aura-halo > .aura-ring,
+.peer:focus-visible ~ .aura-halo > .aura-ring,
+.peer[aria-expanded="true"] ~ .aura-halo > .aura-ring {
+  animation-play-state: running;
+}
+
+.peer:disabled ~ .aura-halo {
+  opacity: 0;
 }
 
 @keyframes aura-spin {
@@ -178,6 +214,72 @@
   }
   100% {
     transform: translate3d(1%, -4%, 0) scale(1, 1.16);
+  }
+}
+
+/* CompE curtain sway: skewX bends the curtain, scaleY makes it breathe from
+   the top edge, translate lets it wander. Still transform-only. */
+@keyframes aura-sway-a {
+  0% {
+    transform: translate3d(-6%, 0, 0) skewX(-9deg) scale(1, 0.9);
+  }
+  33% {
+    transform: translate3d(4%, 3%, 0) skewX(6deg) scale(1.06, 1.12);
+  }
+  66% {
+    transform: translate3d(8%, -2%, 0) skewX(-3deg) scale(0.96, 0.98);
+  }
+  100% {
+    transform: translate3d(-2%, 2%, 0) skewX(10deg) scale(1.04, 1.16);
+  }
+}
+
+@keyframes aura-sway-b {
+  0% {
+    transform: translate3d(5%, -2%, 0) skewX(8deg) scale(0.98, 1.1);
+  }
+  40% {
+    transform: translate3d(-7%, 4%, 0) skewX(-7deg) scale(1.08, 0.92);
+  }
+  70% {
+    transform: translate3d(-2%, 1%, 0) skewX(4deg) scale(1, 1.2);
+  }
+  100% {
+    transform: translate3d(6%, 3%, 0) skewX(-10deg) scale(1.1, 1);
+  }
+}
+
+@keyframes aura-sway-c {
+  0% {
+    transform: translate3d(0, 2%, 0) skewX(-5deg) scale(1.04, 1);
+  }
+  30% {
+    transform: translate3d(-9%, -1%, 0) skewX(9deg) scale(0.94, 1.18);
+  }
+  65% {
+    transform: translate3d(7%, 4%, 0) skewX(-8deg) scale(1.1, 0.9);
+  }
+  100% {
+    transform: translate3d(2%, 0, 0) skewX(5deg) scale(1, 1.1);
+  }
+}
+
+/* Small flicker on top of the sway: the "dance". Opacity is compositor-only. */
+@keyframes aura-shimmer {
+  0% {
+    opacity: 0.7;
+  }
+  22% {
+    opacity: 1;
+  }
+  48% {
+    opacity: 0.55;
+  }
+  74% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0.75;
   }
 }
 

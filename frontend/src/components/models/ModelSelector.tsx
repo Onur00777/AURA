@@ -96,8 +96,10 @@ export function ModelSelector({
           setOpen((v) => !v);
           setInfoFor(null);
         }}
-        className="group flex w-full items-center justify-between gap-3 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-left shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)] transition-colors hover:border-white/[0.14] hover:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40 disabled:cursor-not-allowed disabled:opacity-50"
+        className="peer group relative z-[1] flex w-full overflow-hidden rounded-lg bg-white/[0.08] p-[1.5px] text-left focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
       >
+        <span aria-hidden className="aura-ring" />
+        <span className="aura-glass relative z-[1] flex w-full items-center justify-between gap-3 rounded-[7px] px-3 py-1.5">
         <div className="min-w-0">
           <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-zinc-500">
             Model
@@ -118,7 +120,12 @@ export function ModelSelector({
             clipRule="evenodd"
           />
         </svg>
+        </span>
       </button>
+      {/* Soft aurora light behind the trigger; driven by the peer button. */}
+      <span aria-hidden className="aura-halo">
+        <span className="aura-ring" />
+      </span>
 
       <AnimatePresence>
         {open && models.length > 0 ? (
