@@ -88,7 +88,7 @@ function tierAccentClasses(tier: AuraPower, engineering: boolean): string {
     return "text-amber-300";
   }
   if (tier === "nova") {
-    return engineering ? "text-violet-300" : "text-[#00FF41]";
+    return "text-violet-300 drop-shadow-[0_0_6px_rgba(167,139,250,0.55)]";
   }
   return engineering ? "text-cyan-300" : "text-emerald-300";
 }
@@ -162,6 +162,7 @@ export function ChatInput({
   const engineering = mode === "engineering";
   const activeTier =
     AURA_POWER_TIERS.find((t) => t.id === power) ?? AURA_POWER_TIERS[1];
+  const isNovaActive = activeTier.id === "nova";
 
   return (
     <div className="relative z-40 px-4 pb-5 sm:px-8">
@@ -187,9 +188,10 @@ export function ChatInput({
                 </span>
               </div>
 
-              <div className="space-y-0.5">
+              <div className="space-y-1">
                 {AURA_POWER_TIERS.map((tier) => {
                   const selected = tier.id === power;
+                  const isNova = tier.id === "nova";
                   const accent = tierAccentClasses(tier.id, engineering);
 
                   return (
@@ -203,31 +205,78 @@ export function ChatInput({
                         setMenuOpen(false);
                         textareaRef.current?.focus();
                       }}
-                      className={`group/item flex w-full items-start gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors ${
-                        selected
-                          ? "bg-white/[0.07] text-white"
-                          : "text-zinc-300 hover:bg-white/[0.04] hover:text-white"
+                      className={`group/item relative flex w-full items-start gap-2.5 overflow-hidden rounded-lg px-2.5 py-2 text-left transition-all duration-300 ${
+                        isNova
+                          ? selected
+                            ? "border border-violet-400/30 bg-violet-500/[0.09] text-white shadow-[0_0_24px_-6px_rgba(139,92,246,0.35)]"
+                            : "border border-transparent text-zinc-300 hover:border-violet-400/25 hover:bg-violet-500/[0.06] hover:text-white hover:shadow-[0_0_22px_-6px_rgba(139,92,246,0.28)]"
+                          : selected
+                            ? "border border-white/[0.08] bg-white/[0.07] text-white"
+                            : "border border-transparent text-zinc-300 hover:bg-white/[0.04] hover:text-white"
                       }`}
                     >
+                      {isNova ? (
+                        <span
+                          aria-hidden
+                          className={`pointer-events-none absolute inset-0 isolate transition-opacity duration-300 ${
+                            selected
+                              ? "opacity-55 group-hover/item:opacity-80"
+                              : "opacity-20 group-hover/item:opacity-70"
+                          }`}
+                        >
+                          <span className="absolute -left-6 -top-4 h-16 w-28 rounded-full bg-[#8b5cf6] opacity-45 mix-blend-screen blur-[18px] will-change-transform [animation:aura-sway-a_9s_cubic-bezier(0.45,0,0.55,1)_-2s_infinite_alternate_both]" />
+                          <span className="absolute right-2 -bottom-5 h-16 w-28 rounded-full bg-[#a855f7] opacity-40 mix-blend-screen blur-[20px] will-change-transform [animation:aura-sway-b_11s_cubic-bezier(0.45,0,0.55,1)_-5s_infinite_alternate_both]" />
+                          <span className="absolute left-1/3 top-0 h-12 w-20 rounded-full bg-[#6366f1] opacity-35 mix-blend-screen blur-[16px] will-change-transform [animation:aura-shimmer_4.2s_ease-in-out_infinite_alternate]" />
+                          <span className="absolute inset-x-4 top-0 h-px bg-linear-to-r from-transparent via-violet-300/50 to-transparent" />
+                        </span>
+                      ) : null}
+
                       <span
-                        className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-white/[0.08] bg-white/[0.03] ${accent}`}
+                        className={`relative z-10 mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md border transition-colors duration-300 ${
+                          isNova
+                            ? "border-violet-400/25 bg-violet-500/[0.12] group-hover/item:border-violet-300/40 group-hover/item:bg-violet-500/[0.18]"
+                            : "border-white/[0.08] bg-white/[0.03]"
+                        } ${accent}`}
                       >
-                        <PowerIcon tier={tier.id} className="h-3.5 w-3.5" />
+                        <PowerIcon
+                          tier={tier.id}
+                          className={`h-3.5 w-3.5 ${
+                            isNova
+                              ? "[animation:aura-shimmer_3.6s_ease-in-out_infinite_alternate]"
+                              : ""
+                          }`}
+                        />
                       </span>
 
-                      <span className="min-w-0 flex-1">
+                      <span className="relative z-10 min-w-0 flex-1">
                         <span className="flex items-center gap-2">
-                          <span className="text-[12.5px] font-semibold tracking-tight text-white">
+                          <span
+                            className={`text-[12.5px] font-semibold tracking-tight ${
+                              isNova
+                                ? "bg-linear-to-r from-white via-violet-100 to-violet-300 bg-clip-text text-transparent"
+                                : "text-white"
+                            }`}
+                          >
                             {tier.name}
                           </span>
-                          <span className="rounded border border-white/[0.08] bg-white/[0.04] px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-zinc-400">
+                          <span
+                            className={`rounded px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider transition-colors ${
+                              isNova
+                                ? "border border-violet-400/25 bg-violet-500/[0.12] text-violet-200/90 group-hover/item:border-violet-300/40 group-hover/item:text-violet-100"
+                                : "border border-white/[0.08] bg-white/[0.04] text-zinc-400"
+                            }`}
+                          >
                             {tier.tag}
                           </span>
-                          <span className="ml-auto font-mono text-[9.5px] text-zinc-500">
+                          <span
+                            className={`ml-auto font-mono text-[9.5px] ${
+                              isNova ? "text-violet-300/70" : "text-zinc-500"
+                            }`}
+                          >
                             {tier.tokens}
                           </span>
                         </span>
-                        <span className="mt-0.5 block text-[11px] leading-snug text-zinc-400">
+                        <span className="mt-0.5 block text-[11px] leading-snug text-zinc-400 group-hover/item:text-zinc-300">
                           {tier.description}
                         </span>
                       </span>
@@ -279,22 +328,49 @@ export function ChatInput({
                 aria-controls={menuId}
                 disabled={generating}
                 onClick={() => setMenuOpen((v) => !v)}
-                className="flex h-7 items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-2.5 text-left text-xs text-zinc-200 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)] transition-colors hover:border-white/[0.15] hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500/40 disabled:cursor-not-allowed disabled:opacity-50"
+                className={`group/pill relative flex h-7 items-center gap-1.5 overflow-hidden rounded-lg border px-2.5 text-left text-xs text-zinc-200 transition-all duration-300 focus-visible:outline-none focus-visible:ring-1 disabled:cursor-not-allowed disabled:opacity-50 ${
+                  isNovaActive
+                    ? "border-violet-400/25 bg-violet-500/[0.08] shadow-[0_0_16px_-4px_rgba(139,92,246,0.35),inset_0_1px_0_0_rgba(196,181,253,0.18)] hover:border-violet-300/40 hover:bg-violet-500/[0.12] focus-visible:ring-violet-400/40"
+                    : "border-white/[0.08] bg-white/[0.03] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)] hover:border-white/[0.15] hover:bg-white/[0.06] focus-visible:ring-emerald-500/40"
+                }`}
               >
-                <span className={tierAccentClasses(activeTier.id, engineering)}>
+                {isNovaActive ? (
+                  <span
+                    aria-hidden
+                    className="pointer-events-none absolute inset-0 isolate opacity-60 transition-opacity duration-300 group-hover/pill:opacity-90"
+                  >
+                    <span className="absolute -left-3 -top-2 h-8 w-14 rounded-full bg-[#8b5cf6] opacity-45 mix-blend-screen blur-[10px] will-change-transform [animation:aura-sway-a_8s_cubic-bezier(0.45,0,0.55,1)_-2s_infinite_alternate_both]" />
+                    <span className="absolute -right-2 -bottom-2 h-8 w-14 rounded-full bg-[#a855f7] opacity-40 mix-blend-screen blur-[10px] will-change-transform [animation:aura-sway-b_10s_cubic-bezier(0.45,0,0.55,1)_-4s_infinite_alternate_both]" />
+                  </span>
+                ) : null}
+
+                <span
+                  className={`relative z-10 ${tierAccentClasses(
+                    activeTier.id,
+                    engineering,
+                  )}`}
+                >
                   <PowerIcon tier={activeTier.id} className="h-3 w-3" />
                 </span>
-                <span className="text-[11.5px] font-medium tracking-tight text-zinc-100">
+                <span
+                  className={`relative z-10 text-[11.5px] font-medium tracking-tight ${
+                    isNovaActive ? "text-violet-100" : "text-zinc-100"
+                  }`}
+                >
                   {activeTier.name}
                 </span>
-                <span className="hidden font-mono text-[9.5px] text-zinc-500 sm:inline">
+                <span
+                  className={`relative z-10 hidden font-mono text-[9.5px] sm:inline ${
+                    isNovaActive ? "text-violet-300/75" : "text-zinc-500"
+                  }`}
+                >
                   · {activeTier.tag}
                 </span>
                 <svg
                   viewBox="0 0 20 20"
                   fill="currentColor"
                   aria-hidden
-                  className={`ml-0.5 h-3 w-3 text-zinc-500 transition-transform duration-200 ${
+                  className={`relative z-10 ml-0.5 h-3 w-3 text-zinc-500 transition-transform duration-200 ${
                     menuOpen ? "rotate-180 text-zinc-300" : ""
                   }`}
                 >
