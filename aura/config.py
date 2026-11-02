@@ -97,7 +97,7 @@ class LLMConfig:
     n_threads: int = field(default_factory=lambda: _env_int("AURA_LLM_N_THREADS", 0))
     n_gpu_layers: int = field(default_factory=lambda: _env_int("AURA_LLM_N_GPU_LAYERS", 0))
     n_batch: int = field(default_factory=lambda: _env_int("AURA_LLM_N_BATCH", 256))
-    max_tokens: int = field(default_factory=lambda: _env_int("AURA_LLM_MAX_TOKENS", 256))
+    max_tokens: int = field(default_factory=lambda: _env_int("AURA_LLM_MAX_TOKENS", 640))
     temperature: float = field(default_factory=lambda: _env_float("AURA_LLM_TEMPERATURE", 0.2))
     system_prompt: str = field(
         default_factory=lambda: os.getenv(

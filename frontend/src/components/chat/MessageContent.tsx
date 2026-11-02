@@ -400,9 +400,9 @@ function renderTextBlock(content: string, blockKey: number) {
             className="mt-[10px] h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400/75"
             aria-hidden
           />
-          <div className="min-w-0 flex-1">
+          <span className="min-w-0 flex-1">
             {renderListItemContent(bulletMatch[1])}
-          </div>
+          </span>
         </div>,
       );
       continue;
@@ -415,14 +415,14 @@ function renderTextBlock(content: string, blockKey: number) {
       elements.push(
         <div
           key={`ol-${blockKey}-${key++}`}
-          className="flex items-start gap-2 pl-1 text-[14.5px] leading-[1.7] text-[#e4e4ea]"
+          className="flex items-baseline gap-2 pl-1 text-[14.5px] leading-[1.7] text-[#e4e4ea]"
         >
-          <span className="shrink-0 font-mono text-[12.5px] font-semibold text-emerald-400/85">
+          <span className="shrink-0 font-mono text-[13px] font-semibold text-emerald-400/85">
             {orderedMatch[1]}.
           </span>
-          <div className="min-w-0 flex-1">
+          <span className="min-w-0 flex-1">
             {renderListItemContent(orderedMatch[2])}
-          </div>
+          </span>
         </div>,
       );
       continue;

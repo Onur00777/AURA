@@ -5,6 +5,9 @@ const API_ORIGIN =
 
 const nextConfig: NextConfig = {
   devIndicators: false,
+  experimental: {
+    proxyTimeout: 300_000,
+  },
   async rewrites() {
     return [
       {

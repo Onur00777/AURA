@@ -3,7 +3,15 @@ import type { ChatRequest, ChatResponse, ModelsResponse } from "@/lib/types/api"
 export function getApiBaseUrl(): string {
   const explicit = process.env.NEXT_PUBLIC_AURA_API_URL?.replace(/\/$/, "");
   if (explicit) return explicit;
-  // Same-origin via Next.js rewrite → FastAPI. Avoids CORS and dead 8000 fetches.
+  // When running locally in the browser, talk directly to FastAPI on 127.0.0.1:8000
+  // so Next.js's 30s dev rewrite proxy timeout never kills a longer CPU generation.
+  if (
+    typeof window !== "undefined" &&
+    (window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1")
+  ) {
+    return "http://127.0.0.1:8000";
+  }
   return "";
 }
 
@@ -38,11 +46,7 @@ function friendlyFetchError(err: unknown): Error {
   }
   if (err instanceof Error) {
     const text = err.message.toLowerCase();
-    if (
-      text.includes("failed to fetch") ||
-      text === "internal server error" ||
-      text.includes("econnrefused")
-    ) {
+    if (text.includes("failed to fetch") || text.includes("econnrefused")) {
       return new Error(backendDownMessage());
     }
     return err;

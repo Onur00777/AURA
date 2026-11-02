@@ -78,7 +78,7 @@ class LocalLlamaEngine:
         n_threads: int = 0,
         n_gpu_layers: int = 0,
         n_batch: int = 256,
-        max_tokens: int = 256,
+        max_tokens: int = 640,
         temperature: float = 0.2,
     ) -> None:
         self.model_path = model_path
