@@ -12,6 +12,7 @@ import {
   type KeyboardEvent,
 } from "react";
 
+import { NovaGlow } from "@/components/ui/NovaGlow";
 import {
   AURA_POWER_TIERS,
   type AuraMode,
@@ -224,9 +225,7 @@ export function ChatInput({
                               : "opacity-20 group-hover/item:opacity-70"
                           }`}
                         >
-                          <span className="absolute -left-6 -top-4 h-16 w-28 rounded-full bg-[#8b5cf6] opacity-45 mix-blend-screen blur-[18px] will-change-transform [animation:aura-sway-a_9s_cubic-bezier(0.45,0,0.55,1)_-2s_infinite_alternate_both]" />
-                          <span className="absolute right-2 -bottom-5 h-16 w-28 rounded-full bg-[#a855f7] opacity-40 mix-blend-screen blur-[20px] will-change-transform [animation:aura-sway-b_11s_cubic-bezier(0.45,0,0.55,1)_-5s_infinite_alternate_both]" />
-                          <span className="absolute left-1/3 top-0 h-12 w-20 rounded-full bg-[#6366f1] opacity-35 mix-blend-screen blur-[16px] will-change-transform [animation:aura-shimmer_4.2s_ease-in-out_infinite_alternate]" />
+                          <NovaGlow count={4} minSize={70} maxSize={120} blur={18} />
                           <span className="absolute inset-x-4 top-0 h-px bg-linear-to-r from-transparent via-violet-300/50 to-transparent" />
                         </span>
                       ) : null}
@@ -339,8 +338,7 @@ export function ChatInput({
                     aria-hidden
                     className="pointer-events-none absolute inset-0 isolate opacity-60 transition-opacity duration-300 group-hover/pill:opacity-90"
                   >
-                    <span className="absolute -left-3 -top-2 h-8 w-14 rounded-full bg-[#8b5cf6] opacity-45 mix-blend-screen blur-[10px] will-change-transform [animation:aura-sway-a_8s_cubic-bezier(0.45,0,0.55,1)_-2s_infinite_alternate_both]" />
-                    <span className="absolute -right-2 -bottom-2 h-8 w-14 rounded-full bg-[#a855f7] opacity-40 mix-blend-screen blur-[10px] will-change-transform [animation:aura-sway-b_10s_cubic-bezier(0.45,0,0.55,1)_-4s_infinite_alternate_both]" />
+                    <NovaGlow count={2} minSize={36} maxSize={56} blur={10} />
                   </span>
                 ) : null}
 

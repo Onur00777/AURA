@@ -134,6 +134,7 @@ export function ChatApp() {
           <MessageList
             messages={messages}
             generating={generating}
+            chatId={activeId}
             mode={mode}
             modelLabel={
               selectedModel ? getModelShortName(selectedModel) : undefined

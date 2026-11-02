@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useState, type ReactNode } from "react";
 import { motion } from "framer-motion";
 
 import type { AuraMode } from "@/lib/workspace/mode";
@@ -30,6 +30,17 @@ type QuickAction = {
   icon: ReactNode;
 };
 
+function pickThree(pool: readonly QuickAction[]): QuickAction[] {
+  const copy = [...pool];
+  for (let i = copy.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const current = copy[i];
+    copy[i] = copy[j];
+    copy[j] = current;
+  }
+  return copy.slice(0, 3);
+}
+
 const ICON_PROPS = {
   viewBox: "0 0 24 24",
   className: "h-3.5 w-3.5",
@@ -41,6 +52,10 @@ const ICON_PROPS = {
   "aria-hidden": true,
 };
 
+function ActionIcon({ children }: { children: ReactNode }) {
+  return <svg {...ICON_PROPS}>{children}</svg>;
+}
+
 const QUICK_ACTIONS: QuickAction[] = [
   {
     title: "Analyze C Pointer Logic",
@@ -48,9 +63,9 @@ const QUICK_ACTIONS: QuickAction[] = [
     prompt:
       "Walk me through how pointers, pointer arithmetic, and pointer-to-pointer work in C. Show a short example and point out the common undefined-behavior traps.",
     icon: (
-      <svg {...ICON_PROPS}>
+      <ActionIcon>
         <path d="M8 6 3 12l5 6M16 6l5 6-5 6" />
-      </svg>
+      </ActionIcon>
     ),
   },
   {
@@ -59,9 +74,9 @@ const QUICK_ACTIONS: QuickAction[] = [
     prompt:
       "Compare quicksort, mergesort, and heapsort: time and space complexity, cache behavior, and when each one wins in practice. Suggest how I'd benchmark them fairly.",
     icon: (
-      <svg {...ICON_PROPS}>
+      <ActionIcon>
         <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
-      </svg>
+      </ActionIcon>
     ),
   },
   {
@@ -70,15 +85,124 @@ const QUICK_ACTIONS: QuickAction[] = [
     prompt:
       "Explain how a modern computer system fits together — CPU pipeline, cache hierarchy, main memory, buses, and I/O — and how a single instruction flows through it.",
     icon: (
-      <svg {...ICON_PROPS}>
+      <ActionIcon>
         <rect x="6" y="6" width="12" height="12" rx="2" />
         <path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4" />
-      </svg>
+      </ActionIcon>
+    ),
+  },
+  {
+    title: "Virtual Memory",
+    hint: "Pages, faults, the TLB",
+    prompt:
+      "Explain virtual memory: pages, page tables, the TLB, and what the CPU and OS do on a page fault. Use a short walk-through of one memory access.",
+    icon: (
+      <ActionIcon>
+        <path d="M4 7h16M4 12h16M4 17h10" />
+        <path d="M17 15l3 2-3 2" />
+      </ActionIcon>
+    ),
+  },
+  {
+    title: "TCP and UDP",
+    hint: "Handshake, ports, loss",
+    prompt:
+      "Compare TCP and UDP. Cover the three-way handshake, ports, reliability, and when a program should pick one over the other.",
+    icon: (
+      <ActionIcon>
+        <circle cx="6" cy="12" r="2.5" />
+        <circle cx="18" cy="7" r="2.5" />
+        <circle cx="18" cy="17" r="2.5" />
+        <path d="M8.5 11.2 15.5 8M8.5 12.8l7 3.2" />
+      </ActionIcon>
+    ),
+  },
+  {
+    title: "Process vs Thread",
+    hint: "Scheduling, shared memory",
+    prompt:
+      "Explain the difference between a process and a thread: address space, scheduling, and what is shared. Give one case where threads help and one where processes are safer.",
+    icon: (
+      <ActionIcon>
+        <rect x="3" y="4" width="7" height="7" rx="1.5" />
+        <rect x="14" y="4" width="7" height="7" rx="1.5" />
+        <rect x="8.5" y="13" width="7" height="7" rx="1.5" />
+      </ActionIcon>
+    ),
+  },
+  {
+    title: "Cache Locality",
+    hint: "Hits, lines, row-major",
+    prompt:
+      "Explain spatial and temporal locality, cache lines, and why looping a 2D array in row-major order can be much faster. Sketch a tiny example.",
+    icon: (
+      <ActionIcon>
+        <path d="M12 3v4M12 17v4M3 12h4M17 12h4" />
+        <circle cx="12" cy="12" r="3.5" />
+      </ActionIcon>
+    ),
+  },
+  {
+    title: "Spot a Deadlock",
+    hint: "Locks and circular wait",
+    prompt:
+      "Show a small two-thread deadlock with two locks, name the four Coffman conditions, and explain one way to break it.",
+    icon: (
+      <ActionIcon>
+        <rect x="5" y="11" width="14" height="9" rx="2" />
+        <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+      </ActionIcon>
+    ),
+  },
+  {
+    title: "Stack and Heap",
+    hint: "Lifetime and allocation",
+    prompt:
+      "Compare the stack and the heap in C: who allocates, how long data lives, and the usual bugs (leaks, dangling pointers, stack overflow). Keep the example short.",
+    icon: (
+      <ActionIcon>
+        <path d="M4 7h16M4 12h16M4 17h16" />
+      </ActionIcon>
+    ),
+  },
+  {
+    title: "Pipeline Hazards",
+    hint: "Stalls, forwarding, branches",
+    prompt:
+      "Explain data hazards and control hazards in a classic 5-stage pipeline. Show where forwarding helps and where the pipeline still has to stall.",
+    icon: (
+      <ActionIcon>
+        <path d="M4 16l5-8 4 5 3-4 4 7" />
+      </ActionIcon>
+    ),
+  },
+  {
+    title: "Mutex vs Semaphore",
+    hint: "Critical sections",
+    prompt:
+      "Explain a mutex versus a counting semaphore. Give one critical-section example and one resource-pool example, and say which primitive fits each.",
+    icon: (
+      <ActionIcon>
+        <path d="M8 11V8a4 4 0 0 1 8 0" />
+        <rect x="5" y="11" width="14" height="9" rx="2" />
+      </ActionIcon>
+    ),
+  },
+  {
+    title: "Number Representation",
+    hint: "Two's complement, endianness",
+    prompt:
+      "Explain two's complement and the difference between big-endian and little-endian. Show how the 32-bit value 0x01020304 sits in memory in each order.",
+    icon: (
+      <ActionIcon>
+        <path d="M5 8h4v8H5zM15 8h4v8h-4zM9 12h6" />
+      </ActionIcon>
     ),
   },
 ];
 
 type WorkspaceHeroProps = {
+  chatId?: string;
   modelLabel?: string;
   mode?: AuraMode;
   canSend?: boolean;
@@ -104,18 +228,24 @@ function Emblem() {
 }
 
 export function WorkspaceHero({
+  chatId = "",
   modelLabel,
   mode = "general",
   canSend = false,
   onQuickAction,
 }: WorkspaceHeroProps) {
   const [greeting, setGreeting] = useState<string>(GREETINGS[0]);
+  const [actions, setActions] = useState<QuickAction[]>(() => QUICK_ACTIONS.slice(0, 3));
 
   useEffect(() => {
     const next = mode === "engineering" ? ENGINEERING_GREETINGS : GREETINGS;
     const index = Math.floor(Math.random() * next.length);
     setGreeting(next[index]);
   }, [mode]);
+
+  useLayoutEffect(() => {
+    setActions(pickThree(QUICK_ACTIONS));
+  }, [chatId]);
 
   const actionsEnabled = canSend && Boolean(onQuickAction);
 
@@ -158,7 +288,7 @@ export function WorkspaceHero({
         </div>
 
         <div className="mx-auto mt-8 grid w-full max-w-2xl grid-cols-1 gap-2 text-left sm:grid-cols-3">
-          {QUICK_ACTIONS.map((action, index) => {
+          {actions.map((action, index) => {
             const engineering = mode === "engineering";
             return (
             <motion.button

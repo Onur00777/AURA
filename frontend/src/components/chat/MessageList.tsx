@@ -13,6 +13,7 @@ import type { AuraMode } from "@/lib/workspace/mode";
 type MessageListProps = {
   messages: ChatMessage[];
   generating: boolean;
+  chatId?: string;
   modelLabel?: string;
   mode?: AuraMode;
   canSend?: boolean;
@@ -22,6 +23,7 @@ type MessageListProps = {
 export function MessageList({
   messages,
   generating,
+  chatId,
   modelLabel,
   mode = "general",
   canSend = false,
@@ -39,6 +41,7 @@ export function MessageList({
     <div className="flex flex-1 flex-col overflow-y-auto px-4 py-4 sm:px-8">
       {empty ? (
         <WorkspaceHero
+          chatId={chatId}
           modelLabel={modelLabel}
           mode={mode}
           canSend={canSend}
