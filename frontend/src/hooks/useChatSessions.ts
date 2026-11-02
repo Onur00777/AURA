@@ -5,7 +5,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { postChat } from "@/lib/api/client";
 import { getStorageSnapshot, type StorageSnapshot } from "@/lib/storage/quota";
 import type { ChatMessage } from "@/lib/types/api";
-import { storageKeysFor, type AuraMode } from "@/lib/workspace/mode";
+import {
+  storageKeysFor,
+  type AuraMode,
+  type AuraPower,
+} from "@/lib/workspace/mode";
 
 export type ChatSession = {
   id: string;
@@ -63,7 +67,11 @@ function toApiMessages(messages: ChatMessage[]) {
     .map(({ role, content }) => ({ role, content }));
 }
 
-export function useChatSessions(selectedModel: string, mode: AuraMode) {
+export function useChatSessions(
+  selectedModel: string,
+  mode: AuraMode,
+  power: AuraPower = "pulse",
+) {
   const [sessions, setSessions] = useState<ChatSession[]>(() => [createSession()]);
   const [activeId, setActiveId] = useState<string>("");
   const [generating, setGenerating] = useState(false);
@@ -209,6 +217,7 @@ export function useChatSessions(selectedModel: string, mode: AuraMode) {
           model: selectedModel,
           messages: toApiMessages(conversation),
           mode,
+          power,
         });
         const assistantMessage: ChatMessage = {
           id: createId(),
@@ -259,7 +268,7 @@ export function useChatSessions(selectedModel: string, mode: AuraMode) {
         setGenerating(false);
       }
     },
-    [activeId, generating, mode, selectedModel],
+    [activeId, generating, mode, power, selectedModel],
   );
 
   return {

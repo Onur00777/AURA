@@ -209,68 +209,69 @@
   }
 }
 
-/* Drift only. Opacity stays on each mass so no single color takes the sky. */
-@keyframes aura-breathe-a {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-  50% {
-    transform: translate3d(2%, 2%, 0) scale(1.06);
-  }
-}
-
-@keyframes aura-breathe-b {
-  0%,
-  100% {
-    transform: translate3d(1%, 0, 0) scale(1.04);
-  }
-  50% {
-    transform: translate3d(-2%, 2%, 0) scale(0.97);
-  }
-}
-
-@keyframes aurora-drift-1 {
-  0%,
-  100% {
-    transform: translate(0px, 0px) rotate(-12deg) scale(1);
-    opacity: 0.35;
+/* CompE curtain sway: skewX bends the curtain, scaleY makes it breathe from
+   the top edge, translate lets it wander. Still transform-only. */
+@keyframes aura-sway-a {
+  0% {
+    transform: translate3d(-6%, 0, 0) skewX(-9deg) scale(1, 0.9);
   }
   33% {
-    transform: translate(80px, 30px) rotate(-4deg) scale(1.18);
-    opacity: 0.55;
+    transform: translate3d(4%, 3%, 0) skewX(6deg) scale(1.06, 1.12);
   }
   66% {
-    transform: translate(-40px, -20px) rotate(-18deg) scale(0.92);
-    opacity: 0.3;
+    transform: translate3d(8%, -2%, 0) skewX(-3deg) scale(0.96, 0.98);
+  }
+  100% {
+    transform: translate3d(-2%, 2%, 0) skewX(10deg) scale(1.04, 1.16);
   }
 }
 
-@keyframes aurora-drift-2 {
-  0%,
-  100% {
-    transform: translate(0px, 0px) rotate(6deg) scale(1);
-    opacity: 0.3;
-  }
-  50% {
-    transform: translate(-90px, 40px) rotate(14deg) scale(1.22);
-    opacity: 0.5;
-  }
-}
-
-@keyframes aurora-drift-3 {
-  0%,
-  100% {
-    transform: translate(0px, 0px) rotate(-6deg) scale(1);
-    opacity: 0.4;
+@keyframes aura-sway-b {
+  0% {
+    transform: translate3d(5%, -2%, 0) skewX(8deg) scale(0.98, 1.1);
   }
   40% {
-    transform: translate(-100px, 20px) rotate(2deg) scale(1.15);
-    opacity: 0.6;
+    transform: translate3d(-7%, 4%, 0) skewX(-7deg) scale(1.08, 0.92);
   }
-  80% {
-    transform: translate(50px, -30px) rotate(-12deg) scale(0.95);
-    opacity: 0.35;
+  70% {
+    transform: translate3d(-2%, 1%, 0) skewX(4deg) scale(1, 1.2);
+  }
+  100% {
+    transform: translate3d(6%, 3%, 0) skewX(-10deg) scale(1.1, 1);
+  }
+}
+
+@keyframes aura-sway-c {
+  0% {
+    transform: translate3d(0, 2%, 0) skewX(-5deg) scale(1.04, 1);
+  }
+  30% {
+    transform: translate3d(-9%, -1%, 0) skewX(9deg) scale(0.94, 1.18);
+  }
+  65% {
+    transform: translate3d(7%, 4%, 0) skewX(-8deg) scale(1.1, 0.9);
+  }
+  100% {
+    transform: translate3d(2%, 0, 0) skewX(5deg) scale(1, 1.1);
+  }
+}
+
+/* Small flicker on top of the sway: the "dance". Opacity is compositor-only. */
+@keyframes aura-shimmer {
+  0% {
+    opacity: 0.7;
+  }
+  22% {
+    opacity: 1;
+  }
+  48% {
+    opacity: 0.55;
+  }
+  74% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0.75;
   }
 }
 

@@ -16,12 +16,16 @@ export type ModelsResponse = {
 
 export type ChatMode = "general" | "engineering";
 
+export type ChatPower = "spark" | "pulse" | "nova";
+
 export type ChatRequest = {
   model: string;
   /** Full active-session history including the latest user turn. */
   messages: Array<{ role: ChatRole; content: string }>;
   /** Selects the server system prompt. Default: general. */
   mode?: ChatMode;
+  /** Selects the compute/depth profile. Default: pulse. */
+  power?: ChatPower;
 };
 
 export type ChatResponse = {

@@ -23,7 +23,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
-from aura.config import load_config
+from aura.config import HIGH_POWER_MODE, load_config
 from aura.llm.manager import MultiModelManager
 from aura.utils.logging import setup_logging
 
@@ -48,7 +48,7 @@ AURA_ENGINEERING_SYSTEM_PROMPT = (
     "You only tutor CE: C/C++, data structures, algorithms, computer organization, "
     "OS, networks, databases, digital logic, embedded systems, software engineering.\n"
     "RULES:\n"
-    "1. Match the user's language (Turkish or English). Keep answers compact and finish your sentences.\n"
+    "1. Match the user's language (Turkish or English). Finish your sentences.\n"
     "2. Formatting: NEVER use LaTeX delimiters like \\( ... \\), \\[ ... \\], or $ ... $. "
     "Write complexity and formulas in plain readable text such as O(n log n), O(n²), O(1).\n"
     "3. Be factually conservative. If unsure, say so. Never invent fake taxonomies "
@@ -66,13 +66,48 @@ AURA_ENGINEERING_SYSTEM_PROMPT = (
     "Do not repeat the same sentence. Remember prior turns in this thread."
 )
 
+PowerTier = Literal["spark", "pulse", "nova"]
+
+POWER_PROFILES: dict[str, dict[str, Any]] = {
+    "spark": {
+        "max_tokens": 280,
+        "temperature": 0.15,
+        "directive": (
+            "\n\n[POWER PROFILE: SPARK — Fast & Concise]\n"
+            "Keep your answer short, direct, and lightweight (2–4 sentences or a brief bullet list). "
+            "Skip long step-by-step traces and lengthy examples unless explicitly asked."
+        ),
+    },
+    "pulse": {
+        "max_tokens": 640,
+        "temperature": 0.20,
+        "directive": (
+            "\n\n[POWER PROFILE: PULSE — Balanced]\n"
+            "Provide a clear, well-structured answer with balanced depth and a compact example when helpful."
+        ),
+    },
+    "nova": {
+        "max_tokens": 1536,
+        "temperature": 0.25,
+        "directive": (
+            "\n\n[POWER PROFILE: NOVA — Max Power & Deep Reasoning]\n"
+            "Provide a thorough, comprehensive explanation with clear structure, deep technical reasoning, "
+            "and complete examples."
+        ),
+    },
+}
+
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     setup_logging(_config.log_level)
     logger.info(
-        "AURA API starting (n_ctx=%d, temperature=%.2f)",
+        "AURA API starting [HIGH_POWER_MODE=%d] (n_ctx=%d, max_tokens=%d, n_batch=%d, n_threads=%d, temp=%.2f)",
+        HIGH_POWER_MODE,
         max(2048, _config.llm.n_ctx),
+        _config.llm.max_tokens,
+        _config.llm.n_batch,
+        _config.llm.n_threads,
         _config.llm.temperature,
     )
     try:
@@ -118,6 +153,10 @@ class ChatRequest(BaseModel):
         default="general",
         description="Workspace persona: general chat or Computer Engineering (beta)",
     )
+    power: PowerTier = Field(
+        default="pulse",
+        description="Compute/depth tier: spark (fast), pulse (balanced), nova (max power)",
+    )
 
 
 class ChatResponse(BaseModel):
@@ -137,6 +176,8 @@ async def get_models() -> dict[str, Any]:
         "active_model": _manager.active_model,
         "defaults": {
             "n_ctx": max(2048, _config.llm.n_ctx),
+            "max_tokens": _config.llm.max_tokens,
+            "high_power_mode": HIGH_POWER_MODE,
             "temperature": _config.llm.temperature,
         },
     }
@@ -149,21 +190,26 @@ async def post_chat(request: ChatRequest) -> ChatResponse:
         {"role": msg.role, "content": msg.content} for msg in request.messages
     ]
 
+    profile = POWER_PROFILES.get(request.power, POWER_PROFILES["pulse"])
+
     has_system = any(
         (m.get("role") or "").strip().lower() == "system" for m in formatted
     )
     if not has_system:
-        system = (
+        base_system = (
             AURA_ENGINEERING_SYSTEM_PROMPT
             if request.mode == "engineering"
             else AURA_CHAT_SYSTEM_PROMPT
         )
+        system = f"{base_system}{profile['directive']}"
         formatted = [{"role": "system", "content": system}, *formatted]
 
     logger.info(
-        "Chat request model=%s mode=%s turns=%d",
+        "Chat request model=%s mode=%s power=%s (max_tokens=%d) turns=%d",
         request.model,
         request.mode,
+        request.power,
+        profile["max_tokens"],
         len(formatted),
     )
 
@@ -171,6 +217,8 @@ async def post_chat(request: ChatRequest) -> ChatResponse:
         result = await _manager.complete_messages(
             formatted,
             model=request.model,
+            max_tokens=profile["max_tokens"],
+            temperature=profile["temperature"],
         )
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc

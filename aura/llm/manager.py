@@ -130,7 +130,7 @@ class MultiModelManager:
                 old_engine.unload()
                 del self._engines[old_key]
 
-            n_ctx = max(2048, int(self._config.n_ctx or 2048))
+            n_ctx = max(2048, int(self._config.n_ctx or 4096))
             temperature = float(self._config.temperature)
             engine = local_api.LocalLlamaEngine(
                 model_path,
@@ -178,6 +178,8 @@ class MultiModelManager:
         messages: list[dict[str, str]],
         *,
         model: str = "",
+        max_tokens: int | None = None,
+        temperature: float | None = None,
     ) -> dict[str, Any]:
         """Generate a reply from a full chat ``messages`` array (blocking)."""
         path = resolve_requested_model(model, models_dir=self._models_dir)
@@ -188,7 +190,11 @@ class MultiModelManager:
             )
 
         engine = self._engine_for(path)
-        result = engine.complete_messages(messages)
+        result = engine.complete_messages(
+            messages,
+            max_tokens=max_tokens,
+            temperature=temperature,
+        )
         return {
             "reply": result["text"],
             "model_used": path.name,
@@ -221,12 +227,19 @@ class MultiModelManager:
         messages: list[dict[str, str]],
         *,
         model: str = "",
+        max_tokens: int | None = None,
+        temperature: float | None = None,
     ) -> dict[str, Any]:
         """Async wrapper around ``complete_messages_blocking``."""
         loop = asyncio.get_running_loop()
         return await loop.run_in_executor(
             _EXECUTOR,
-            lambda: self.complete_messages_blocking(messages, model=model),
+            lambda: self.complete_messages_blocking(
+                messages,
+                model=model,
+                max_tokens=max_tokens,
+                temperature=temperature,
+            ),
         )
 
     def shutdown(self) -> None:

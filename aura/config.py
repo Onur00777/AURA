@@ -12,6 +12,18 @@ from dotenv import load_dotenv
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 load_dotenv(_PROJECT_ROOT / ".env", override=False)
 
+# ── PERFORMANS MODU ANAHTARI (C tarzı 0 / 1 bayrağı) ─────────────────────────
+# 0 = Normal Mod   (n_ctx=2048, max_tokens=640,  n_batch=256, varsayılan CPU)
+# 1 = Zorlamalı Mod (n_ctx=4096, max_tokens=1536, n_batch=512, maksimum CPU çekirdeği)
+HIGH_POWER_MODE: int = 1
+
+_DEFAULT_N_CTX = 4096 if HIGH_POWER_MODE == 1 else 2048
+_DEFAULT_MAX_TOKENS = 1536 if HIGH_POWER_MODE == 1 else 640
+_DEFAULT_N_BATCH = 512 if HIGH_POWER_MODE == 1 else 256
+_DEFAULT_N_THREADS = (
+    max(1, (os.cpu_count() or 4) - 1) if HIGH_POWER_MODE == 1 else 0
+)
+
 _DEFAULT_GEMINI_MODEL = "gemini-1.5-flash"
 _DEFAULT_LOCAL_LLM_MODEL = "local-gguf"
 _DEFAULT_LOCAL_STT_MODEL = "sphinx"
@@ -93,11 +105,11 @@ class LLMConfig:
     model_path: str = field(default_factory=lambda: os.getenv("AURA_LLM_MODEL_PATH", ""))
     base_url: str = field(default_factory=lambda: os.getenv("AURA_LLM_BASE_URL", ""))
     timeout_seconds: float = 120.0
-    n_ctx: int = field(default_factory=lambda: _env_int("AURA_LLM_N_CTX", 2048))
-    n_threads: int = field(default_factory=lambda: _env_int("AURA_LLM_N_THREADS", 0))
+    n_ctx: int = field(default_factory=lambda: _env_int("AURA_LLM_N_CTX", _DEFAULT_N_CTX))
+    n_threads: int = field(default_factory=lambda: _env_int("AURA_LLM_N_THREADS", _DEFAULT_N_THREADS))
     n_gpu_layers: int = field(default_factory=lambda: _env_int("AURA_LLM_N_GPU_LAYERS", 0))
-    n_batch: int = field(default_factory=lambda: _env_int("AURA_LLM_N_BATCH", 256))
-    max_tokens: int = field(default_factory=lambda: _env_int("AURA_LLM_MAX_TOKENS", 640))
+    n_batch: int = field(default_factory=lambda: _env_int("AURA_LLM_N_BATCH", _DEFAULT_N_BATCH))
+    max_tokens: int = field(default_factory=lambda: _env_int("AURA_LLM_MAX_TOKENS", _DEFAULT_MAX_TOKENS))
     temperature: float = field(default_factory=lambda: _env_float("AURA_LLM_TEMPERATURE", 0.2))
     system_prompt: str = field(
         default_factory=lambda: os.getenv(

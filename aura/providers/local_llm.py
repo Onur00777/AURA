@@ -74,10 +74,10 @@ class LocalLlamaEngine:
         self,
         model_path: Path,
         *,
-        n_ctx: int = 2048,
+        n_ctx: int = 4096,
         n_threads: int = 0,
         n_gpu_layers: int = 0,
-        n_batch: int = 256,
+        n_batch: int = 512,
         max_tokens: int = 640,
         temperature: float = 0.2,
     ) -> None:
@@ -137,7 +137,13 @@ class LocalLlamaEngine:
         messages.append({"role": "user", "content": prompt})
         return self.complete_messages(messages)
 
-    def complete_messages(self, messages: list[dict[str, str]]) -> dict[str, Any]:
+    def complete_messages(
+        self,
+        messages: list[dict[str, str]],
+        *,
+        max_tokens: int | None = None,
+        temperature: float | None = None,
+    ) -> dict[str, Any]:
         """Run a chat completion with a fully built ``messages`` array."""
         self.load()
         assert self._llm is not None
@@ -155,10 +161,17 @@ class LocalLlamaEngine:
         if not cleaned:
             raise ValueError("messages must contain at least one non-empty turn")
 
+        effective_max_tokens = (
+            int(max_tokens) if max_tokens and max_tokens > 0 else self.max_tokens
+        )
+        effective_temp = (
+            float(temperature) if temperature is not None else self.temperature
+        )
+
         result = self._llm.create_chat_completion(
             messages=cleaned,
-            max_tokens=self.max_tokens,
-            temperature=self.temperature,
+            max_tokens=effective_max_tokens,
+            temperature=effective_temp,
         )
         choice = result["choices"][0]["message"]["content"]
         usage = result.get("usage") or {}
