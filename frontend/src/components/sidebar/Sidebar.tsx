@@ -21,7 +21,27 @@ type SidebarProps = {
   onDeleteChat: (id: string) => void;
   onAutoTrim: () => void;
   onCloseMobile: () => void;
+  settingsOpen?: boolean;
+  onOpenSettings: () => void;
 };
+
+function GearIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
 
 function TrashIcon({ className = "" }: { className?: string }) {
   return (
@@ -53,11 +73,13 @@ export function Sidebar({
   onDeleteChat,
   onAutoTrim,
   onCloseMobile,
+  settingsOpen = false,
+  onOpenSettings,
 }: SidebarProps) {
   const recent = [...sessions].sort((a, b) => b.updatedAt - a.updatedAt);
 
   const panel = (
-    <aside className="flex h-full w-[248px] shrink-0 flex-col border-r border-white/[0.06] bg-[#080808]/90 backdrop-blur-xl">
+    <aside className="flex h-full min-h-0 w-[248px] shrink-0 flex-col overflow-hidden border-r border-white/[0.06] bg-[#080808]/90 backdrop-blur-xl">
       <div className="px-3 pb-3 pt-4">
         <div className="mb-3.5 flex items-center gap-2 px-1">
           <span className="h-1.5 w-1.5 rounded-full bg-[#00FF41] shadow-[0_0_6px_rgba(0,255,65,0.7)]" aria-hidden />
@@ -99,7 +121,7 @@ export function Sidebar({
         </p>
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-2 pb-3" aria-label="Recent chats">
+      <nav className="min-h-0 flex-1 overflow-y-auto px-2 pb-3" aria-label="Recent chats">
         <ul className="flex flex-col gap-0.5">
           {recent.map((session) => {
             const active = session.id === activeId;
@@ -144,8 +166,24 @@ export function Sidebar({
         </ul>
       </nav>
 
-      <div className="border-t border-white/[0.06] p-3">
+      <div className="shrink-0 space-y-2 border-t border-white/[0.06] p-3">
         <StorageUsageBar storage={storage} onAutoTrim={onAutoTrim} />
+        <button
+          type="button"
+          aria-pressed={settingsOpen}
+          onClick={() => {
+            onOpenSettings();
+            onCloseMobile();
+          }}
+          className={`flex h-8 w-full items-center gap-2 rounded-lg px-2 text-[12px] font-medium tracking-tight transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40 ${
+            settingsOpen
+              ? "bg-white/[0.07] text-white"
+              : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-100"
+          }`}
+        >
+          <GearIcon className="h-3.5 w-3.5" />
+          Settings
+        </button>
       </div>
     </aside>
   );

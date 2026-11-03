@@ -8,6 +8,7 @@ import { ApiErrorBanner } from "@/components/chat/ApiErrorBanner";
 import { ChatHeader } from "@/components/chat/ChatHeader";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { MessageList } from "@/components/chat/MessageList";
+import { SettingsView } from "@/components/settings/SettingsView";
 import { Sidebar } from "@/components/sidebar/Sidebar";
 import { useChatSessions } from "@/hooks/useChatSessions";
 import { useModels } from "@/hooks/useModels";
@@ -23,6 +24,7 @@ import {
 
 export function ChatApp() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [mode, setMode] = useState<AuraMode>("general");
   const [power, setPower] = useState<AuraPower>("pulse");
 
@@ -89,11 +91,19 @@ export function ChatApp() {
         storage={storage}
         generating={generating}
         onModeChange={handleModeChange}
-        onNewChat={newChat}
-        onSelectChat={selectChat}
+        onNewChat={() => {
+          newChat();
+          setSettingsOpen(false);
+        }}
+        onSelectChat={(id) => {
+          selectChat(id);
+          setSettingsOpen(false);
+        }}
         onDeleteChat={deleteSession}
         onAutoTrim={() => trimOldest(3)}
         onCloseMobile={() => setSidebarOpen(false)}
+        settingsOpen={settingsOpen}
+        onOpenSettings={() => setSettingsOpen((open) => !open)}
       />
 
       <div className="relative z-10 flex min-w-0 flex-1 flex-col">
@@ -131,26 +141,38 @@ export function ChatApp() {
             </div>
           ) : null}
 
-          <MessageList
-            messages={messages}
-            generating={generating}
-            chatId={activeId}
-            mode={mode}
-            modelLabel={
-              selectedModel ? getModelShortName(selectedModel) : undefined
-            }
-            canSend={canSend}
-            onQuickAction={sendMessage}
-          />
+          {settingsOpen ? (
+            <SettingsView
+              mode={mode}
+              sessions={sessions}
+              storage={storage}
+              onAutoTrim={() => trimOldest(3)}
+              onBack={() => setSettingsOpen(false)}
+            />
+          ) : (
+            <>
+              <MessageList
+                messages={messages}
+                generating={generating}
+                chatId={activeId}
+                mode={mode}
+                modelLabel={
+                  selectedModel ? getModelShortName(selectedModel) : undefined
+                }
+                canSend={canSend}
+                onQuickAction={sendMessage}
+              />
 
-          <ChatInput
-            disabled={!canSend}
-            generating={generating}
-            mode={mode}
-            power={power}
-            onPowerChange={handlePowerChange}
-            onSend={sendMessage}
-          />
+              <ChatInput
+                disabled={!canSend}
+                generating={generating}
+                mode={mode}
+                power={power}
+                onPowerChange={handlePowerChange}
+                onSend={sendMessage}
+              />
+            </>
+          )}
         </div>
       </div>
     </motion.div>
