@@ -1,27 +1,9 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useState, type ReactNode } from "react";
-import { motion } from "framer-motion";
+import type { ReactNode } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 
 import type { AuraMode } from "@/lib/workspace/mode";
-
-const GREETINGS = [
-  "What shall we build today, Onur?",
-  "Ready to change the world?",
-  "Pick a model and let's craft something amazing.",
-  "AURA is online. What's on the agenda?",
-  "Let's turn complex ideas into code, Onur.",
-  "Ship something sharp today, Onur.",
-  "Your local models are standing by.",
-  "Ideas in. Code out. Where do we start?",
-] as const;
-
-const ENGINEERING_GREETINGS = [
-  "Where should we go deeper — OS, networks, or the ISA?",
-  "Ask like a CE student. I'll teach like a TA, not a search box.",
-  "Pointers, pipelines, protocols — pick a layer.",
-  "Let's reason through the hardware–software boundary.",
-] as const;
 
 type QuickAction = {
   title: string;
@@ -30,13 +12,18 @@ type QuickAction = {
   icon: ReactNode;
 };
 
-function pickThree(pool: readonly QuickAction[]): QuickAction[] {
+function pickThree(pool: readonly QuickAction[], chatId: string): QuickAction[] {
+  // Seed the shuffle with the chat ID so suggestions stay stable across renders.
+  let seed = 2166136261;
+  for (let i = 0; i < chatId.length; i += 1) {
+    seed = Math.imul(seed ^ chatId.charCodeAt(i), 16777619);
+  }
+
   const copy = [...pool];
-  for (let i = copy.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
-    const current = copy[i];
-    copy[i] = copy[j];
-    copy[j] = current;
+  for (let i = 0; i < 3; i += 1) {
+    seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+    const j = i + Math.floor((seed / 2 ** 32) * (copy.length - i));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
   }
   return copy.slice(0, 3);
 }
@@ -56,7 +43,46 @@ function ActionIcon({ children }: { children: ReactNode }) {
   return <svg {...ICON_PROPS}>{children}</svg>;
 }
 
-const QUICK_ACTIONS: QuickAction[] = [
+const GENERAL_QUICK_ACTIONS: QuickAction[] = [
+  {
+    title: "What Can I Cook Tonight?",
+    hint: "Quick dinner ideas",
+    prompt: "Suggest three easy dinners I can make in 30 minutes with common pantry ingredients.",
+    icon: <ActionIcon><path d="M3 12h18a9 9 0 0 1-18 0ZM8 21h8M9 4v4M15 4v4" /></ActionIcon>,
+  },
+  {
+    title: "Help Me Write an Email",
+    hint: "A friendly follow-up",
+    prompt: "Draft a short, friendly email following up on a message I sent last week. Give me a subject line too.",
+    icon: <ActionIcon><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></ActionIcon>,
+  },
+  {
+    title: "Why Is the Sky Blue?",
+    hint: "Everyday science",
+    prompt: "Explain why the sky is blue and why sunsets look red, using everyday language and a simple analogy.",
+    icon: <ActionIcon><circle cx="12" cy="12" r="4" /><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l2 2m10 10 2 2M5 19l2-2M17 7l2-2" /></ActionIcon>,
+  },
+  {
+    title: "Plan a Relaxing Weekend",
+    hint: "Low-cost activities",
+    prompt: "Give me a flexible plan for a relaxing weekend at home and in my neighborhood, with a few free activities.",
+    icon: <ActionIcon><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M7 3v4m10-4v4M3 10h18" /></ActionIcon>,
+  },
+  {
+    title: "Practice a New Language",
+    hint: "A short café role-play",
+    prompt: "Ask me which language I'm learning, then help me practice ordering at a café in a short beginner-friendly role-play.",
+    icon: <ActionIcon><path d="M4 5h16v11H9l-5 4V5ZM8 10h8M8 13h5" /></ActionIcon>,
+  },
+  {
+    title: "Find a Book to Read",
+    hint: "Pick your next read",
+    prompt: "Ask me what kinds of stories I enjoy and what mood I'm in, then suggest three books and briefly explain each pick.",
+    icon: <ActionIcon><path d="M12 6v15M12 6c-3-2-6-3-10-2v15c4-1 7 0 10 2 3-2 6-3 10-2V4c-4-1-7 0-10 2Z" /></ActionIcon>,
+  },
+];
+
+const ENGINEERING_QUICK_ACTIONS: QuickAction[] = [
   {
     title: "Analyze C Pointer Logic",
     hint: "Memory, aliasing, UB",
@@ -209,24 +235,6 @@ type WorkspaceHeroProps = {
   onQuickAction?: (prompt: string) => void;
 };
 
-function Emblem() {
-  return (
-    <div className="relative mx-auto mb-7 inline-flex h-14 items-center justify-center">
-      <div className="absolute inset-0 rounded-2xl bg-[#00FF41]/10 blur-xl" aria-hidden />
-      <div className="absolute inset-0 rotate-3 rounded-2xl border border-white/[0.05] bg-white/[0.02]" aria-hidden />
-      <div className="relative flex h-full items-center justify-center rounded-2xl border border-white/[0.1] bg-linear-to-b from-white/[0.08] to-white/[0.02] px-6 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)] backdrop-blur-xl">
-        <span className="font-pixel text-[12px] leading-none tracking-[0.14em] text-white">
-          AURA
-        </span>
-        <span className="absolute right-2.5 top-2.5 flex h-1.5 w-1.5" aria-hidden>
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#00FF41] opacity-60" />
-          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#00FF41] shadow-[0_0_6px_rgba(0,255,65,0.8)]" />
-        </span>
-      </div>
-    </div>
-  );
-}
-
 export function WorkspaceHero({
   chatId = "",
   modelLabel,
@@ -234,104 +242,84 @@ export function WorkspaceHero({
   canSend = false,
   onQuickAction,
 }: WorkspaceHeroProps) {
-  const [greeting, setGreeting] = useState<string>(GREETINGS[0]);
-  const [actions, setActions] = useState<QuickAction[]>(() => QUICK_ACTIONS.slice(0, 3));
-
-  useEffect(() => {
-    const next = mode === "engineering" ? ENGINEERING_GREETINGS : GREETINGS;
-    const index = Math.floor(Math.random() * next.length);
-    setGreeting(next[index]);
-  }, [mode]);
-
-  useLayoutEffect(() => {
-    setActions(pickThree(QUICK_ACTIONS));
-  }, [chatId]);
-
+  const reduceMotion = useReducedMotion();
+  const engineering = mode === "engineering";
+  const actions = pickThree(
+    engineering ? ENGINEERING_QUICK_ACTIONS : GENERAL_QUICK_ACTIONS,
+    chatId,
+  );
   const actionsEnabled = canSend && Boolean(onQuickAction);
 
   return (
-    <div className="m-auto flex w-full max-w-2xl flex-col items-center px-4 py-14 text-center">
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
+    <div className="m-auto w-full max-w-3xl px-2 py-6 sm:px-5 sm:py-10">
+      <motion.section
+        key={mode}
+        initial={reduceMotion ? false : { opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35, ease: "easeOut" }}
-        className="w-full"
+        transition={{ duration: 0.24, ease: "easeOut" }}
+        aria-labelledby="workspace-hero-title"
+        className={`isolate overflow-hidden rounded-3xl border border-(--hero-accent)/15 bg-[#0c0d0e] shadow-xl shadow-black/30 ${
+          engineering ? "[--hero-accent:#67e8f9]" : "[--hero-accent:#86efac]"
+        }`}
       >
-        <Emblem />
-
-        <p className="font-pixel text-[8px] uppercase leading-relaxed tracking-[0.18em] text-zinc-500">
-          {mode === "engineering" ? "CompE · Beta" : "AURA"}
-        </p>
-        <h2 className="mx-auto mt-3 max-w-xl bg-linear-to-b from-white via-white/90 to-white/50 bg-clip-text pb-1 font-display text-3xl font-medium leading-tight tracking-tight text-transparent">
-          {greeting}
-        </h2>
-        <p className="mx-auto mt-3 max-w-sm text-[14px] leading-relaxed text-[#8a8a93]">
-          {mode === "engineering"
-            ? "This thread is separate from General. Answers stay inside Computer Engineering — from first year through architecture, OS, and networks."
-            : "Messages stay on this device. Pick a model and type below — your sessions restore automatically."}
-        </p>
-
-        <div className="mx-auto mt-7 flex flex-wrap items-center justify-center gap-2">
-          <span className="rounded-md border border-white/[0.08] bg-white/[0.03] px-2.5 py-1 font-mono text-[10px] tracking-wide text-zinc-400">
-            Local GGUF
-          </span>
-          {modelLabel ? (
-            <span className="inline-flex max-w-[16rem] items-center gap-1.5 truncate rounded-md border border-[#00FF41]/20 bg-[#00FF41]/[0.05] px-2.5 py-1 font-mono text-[10px] tracking-wide text-[#00FF41]/90">
-              <span className="h-1 w-1 rounded-full bg-[#00FF41]" aria-hidden />
-              {modelLabel}
+        <div className="relative overflow-hidden px-5 py-8 sm:px-9 sm:py-11">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top_left,var(--tw-gradient-stops))] from-(--hero-accent)/15 via-(--hero-accent)/3 to-transparent"
+          />
+          <div className="mb-5 flex flex-wrap items-center gap-x-4 gap-y-2">
+            <span className="font-pixel text-[10px] tracking-wide text-(--hero-accent)">
+              {engineering ? "CompE" : "AURA"}
             </span>
-          ) : (
-            <span className="rounded-md border border-white/[0.08] px-2.5 py-1 font-mono text-[10px] tracking-wide text-zinc-500">
-              No model selected
-            </span>
-          )}
+            {modelLabel ? (
+              <span className="max-w-full truncate rounded-full border border-white/10 bg-black/30 px-2.5 py-1 font-mono text-[10px] text-zinc-300">
+                {modelLabel}
+              </span>
+            ) : null}
+          </div>
+
+          <h2 id="workspace-hero-title" className="max-w-xl text-balance font-display text-3xl font-medium tracking-tight text-zinc-50 sm:text-5xl">
+            {engineering ? "How does it work under the hood?" : "What’s on your mind?"}
+          </h2>
+          <p className="mt-3 max-w-md text-pretty text-sm leading-relaxed text-zinc-400">
+            {engineering
+              ? "Explore how computers work, from circuits and memory to operating systems and networks."
+              : "Make a plan, find the right words, or explore something you’ve always wondered about."}
+          </p>
         </div>
 
-        <div className="mx-auto mt-8 grid w-full max-w-2xl grid-cols-1 gap-2 text-left sm:grid-cols-3">
-          {actions.map((action, index) => {
-            const engineering = mode === "engineering";
-            return (
-            <motion.button
-              key={action.title}
-              type="button"
-              disabled={!actionsEnabled}
-              onClick={() => onQuickAction?.(action.prompt)}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.28, ease: "easeOut", delay: 0.08 + index * 0.05 }}
-              className={`group relative flex overflow-hidden rounded-xl text-left focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40 ${
-                engineering ? "bg-white/[0.08] p-[1.5px]" : ""
-              }`}
-            >
-              {engineering ? <span aria-hidden className="aura-ring" /> : null}
-              <span
-                className={`relative flex w-full flex-col items-start gap-2 rounded-[11px] p-3 ${
-                  engineering
-                    ? "aura-glass relative z-[1]"
-                    : "border border-white/[0.06] bg-white/[0.02] transition-all duration-200 group-hover:border-emerald-500/30 group-hover:bg-white/[0.04] group-disabled:group-hover:border-white/[0.06] group-disabled:group-hover:bg-white/[0.02]"
-                }`}
+        <div className="border-t border-white/[0.08] bg-black/25 px-4 pb-4 pt-3.5 sm:px-5 sm:pb-5">
+          <h3 className="mb-2.5 px-1 text-xs font-medium text-zinc-400">
+            Start with a prompt
+          </h3>
+          <div className="grid gap-2 sm:grid-cols-3">
+            {actions.map((action) => (
+              <button
+                key={action.title}
+                type="button"
+                disabled={!actionsEnabled}
+                onClick={() => onQuickAction?.(action.prompt)}
+                className="group flex min-w-0 items-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.025] p-3 text-left enabled:hover:border-(--hero-accent)/35 enabled:hover:bg-(--hero-accent)/8 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--hero-accent) disabled:cursor-not-allowed disabled:opacity-50 motion-safe:transition-colors sm:flex-col sm:items-start sm:gap-2"
               >
-              {engineering ? null : (
-              <span
-                className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-[#00FF41]/40 to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100"
-                aria-hidden
-              />
-              )}
-              <span className={`flex h-6 w-6 items-center justify-center rounded-md border border-white/[0.08] bg-white/[0.03] text-zinc-400 transition-colors ${
-                engineering ? "group-hover:text-[#99f6e4]" : "group-hover:text-[#00FF41]"
-              }`}>
-                {action.icon}
-              </span>
-              <span className="text-[12.5px] font-medium leading-snug tracking-tight text-zinc-200">
-                {action.title}
-              </span>
-              <span className="font-mono text-[10px] text-zinc-500">{action.hint}</span>
-              </span>
-            </motion.button>
-            );
-          })}
+                <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-(--hero-accent)/10 text-(--hero-accent)">
+                  {action.icon}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-medium leading-snug text-zinc-100">
+                    {action.title}
+                  </span>
+                  <span className="mt-1 block text-xs leading-snug text-zinc-400">
+                    {action.hint}
+                  </span>
+                </span>
+                <span aria-hidden className="ml-auto text-sm text-zinc-500 group-enabled:group-hover:text-(--hero-accent) sm:hidden">
+                  →
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
-      </motion.div>
+      </motion.section>
     </div>
   );
 }
