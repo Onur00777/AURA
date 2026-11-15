@@ -69,6 +69,38 @@ AURA_ENGINEERING_SYSTEM_PROMPT = (
 )
 
 PowerTier = Literal["spark", "pulse", "nova"]
+StudyTopic = Literal["algorithms", "operating_systems", "architecture", "embedded", "networks", "memory"]
+STUDY_TOPICS = {
+    "algorithms": "data structures and algorithms",
+    "operating_systems": "operating systems",
+    "architecture": "computer architecture",
+    "embedded": "embedded systems",
+    "networks": "computer networks",
+    "memory": "C/C++ memory management",
+}
+
+
+class StudyRequest(BaseModel):
+    topic: StudyTopic
+    step: Literal["question", "feedback"]
+
+
+def study_directive(study: StudyRequest) -> str:
+    topic = STUDY_TOPICS[study.topic]
+    if study.step == "question":
+        guidance = (
+            "Ask exactly one short, focused question suited to the learner. "
+            "Use earlier answers to calibrate difficulty and avoid repeating a question. "
+            "Do not reveal the solution or include a second question."
+        )
+    else:
+        guidance = (
+            "Evaluate the learner's latest answer against the preceding question. "
+            "Use exactly three short sections with headings '### Correct', '### Missing', "
+            "and '### Incorrect'. Put 'None' under a heading if nothing applies. "
+            "Explain concrete corrections. Do not ask the next question yet."
+        )
+    return f"\n\n[STUDY SESSION: {topic}] {guidance}"
 
 POWER_PROFILES: dict[str, dict[str, Any]] = {
     "spark": {
@@ -159,6 +191,7 @@ class ChatRequest(BaseModel):
         default="pulse",
         description="Compute/depth tier: spark (fast), pulse (balanced), nova (max power)",
     )
+    study: StudyRequest | None = None
 
 
 class ChatResponse(BaseModel):
@@ -186,6 +219,8 @@ async def get_models() -> dict[str, Any]:
 
 
 def chat_options(request: ChatRequest) -> tuple[list[dict[str, str]], dict[str, Any]]:
+    if request.study is not None and request.mode != "engineering":
+        raise HTTPException(status_code=422, detail="Study sessions require CompE mode.")
     formatted: list[dict[str, str]] = [
         {"role": msg.role, "content": msg.content} for msg in request.messages
     ]
@@ -195,13 +230,16 @@ def chat_options(request: ChatRequest) -> tuple[list[dict[str, str]], dict[str, 
     has_system = any(
         (m.get("role") or "").strip().lower() == "system" for m in formatted
     )
-    if not has_system:
+    if not has_system or request.study is not None:
         base_system = (
             AURA_ENGINEERING_SYSTEM_PROMPT
             if request.mode == "engineering"
             else AURA_CHAT_SYSTEM_PROMPT
         )
         system = f"{base_system}{profile['directive']}"
+        if request.study is not None:
+            system += study_directive(request.study)
+            formatted = [turn for turn in formatted if turn["role"].strip().lower() != "system"]
         formatted = [{"role": "system", "content": system}, *formatted]
 
     logger.info(

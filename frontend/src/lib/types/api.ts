@@ -1,3 +1,5 @@
+import type { StudyTopic } from "@/lib/workspace/study";
+
 export type ModelItem = {
   name: string;
   path: string;
@@ -17,6 +19,7 @@ export type ModelsResponse = {
 export type ChatMode = "general" | "engineering";
 
 export type ChatPower = "spark" | "pulse" | "nova";
+export type StudyStep = "question" | "feedback";
 
 export type ChatRequest = {
   model: string;
@@ -26,6 +29,7 @@ export type ChatRequest = {
   mode?: ChatMode;
   /** Selects the compute/depth profile. Default: pulse. */
   power?: ChatPower;
+  study?: { topic: StudyTopic; step: StudyStep };
 };
 
 export type ChatResponse = {
@@ -52,4 +56,5 @@ export type ChatMessage = {
   powerUsed?: ChatPower;
   metrics?: ChatMetrics;
   attachment?: ChatAttachment;
+  studyStep?: StudyStep;
 };
