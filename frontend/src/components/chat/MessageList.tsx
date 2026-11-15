@@ -11,6 +11,7 @@ import { TypingIndicator } from "@/components/chat/TypingIndicator";
 import { WorkspaceHero } from "@/components/chat/WorkspaceHero";
 import type { ChatMessage } from "@/lib/types/api";
 import type { AuraMode, AuraPower } from "@/lib/workspace/mode";
+import { AURA_POWER_TIERS } from "@/lib/workspace/mode";
 
 type MessageListProps = {
   messages: ChatMessage[];
@@ -104,6 +105,21 @@ export function MessageList({
                       content={message.content}
                       align={isUser ? "end" : "start"}
                     />
+                    {message.metrics ? (
+                      <p
+                        className="mt-1.5 flex flex-wrap gap-x-1.5 font-mono text-[10px] text-zinc-400"
+                        title="First text from the backend. Token count and speed use the model tokenizer on the emitted text."
+                      >
+                        <span>{(message.metrics.ttft_ms / 1000).toFixed(2)} s first text</span>
+                        {message.metrics.tokens_per_second !== null ? (
+                          <span>· ~{message.metrics.tokens_per_second.toFixed(1)} tok/s</span>
+                        ) : null}
+                        <span>· ~{message.metrics.output_tokens} tokens</span>
+                        {message.powerUsed ? (
+                          <span>· {AURA_POWER_TIERS.find((tier) => tier.id === message.powerUsed)?.name}</span>
+                        ) : null}
+                      </p>
+                    ) : null}
                     {!isUser && onRetry ? (
                       <RetryResponse disabled={!canSend || busy} onRetry={(power) => onRetry(message.id, power)} />
                     ) : null}
