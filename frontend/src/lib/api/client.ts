@@ -1,4 +1,4 @@
-import type { ChatRequest, ChatResponse, ModelsResponse } from "@/lib/types/api";
+import type { ChatMetrics, ChatRequest, ChatResponse, ModelsResponse } from "@/lib/types/api";
 
 export function getApiBaseUrl(): string {
   const explicit = process.env.NEXT_PUBLIC_AURA_API_URL?.replace(/\/$/, "");
@@ -127,7 +127,7 @@ export async function streamChat(
           }
           if (event.type === "done" && typeof event.model_used === "string") {
             if (!reply.trim()) throw new Error("The model returned an empty reply");
-            return { reply: reply.trim(), model_used: event.model_used };
+            return { reply: reply.trim(), model_used: event.model_used, metrics: readMetrics(event.metrics) };
           }
         }
         if (done) throw new Error("The response stream ended before completion");
@@ -139,4 +139,17 @@ export async function streamChat(
   } catch (err) {
     throw friendlyFetchError(err);
   }
+}
+
+function readMetrics(value: unknown): ChatMetrics | undefined {
+  if (!value || typeof value !== "object") return;
+  const { ttft_ms, output_tokens, tokens_per_second } = value as Partial<ChatMetrics>;
+  const valid = (number: unknown): number is number =>
+    typeof number === "number" && Number.isFinite(number) && number >= 0;
+  if (!valid(ttft_ms) || !valid(output_tokens)) return;
+  return {
+    ttft_ms,
+    output_tokens,
+    tokens_per_second: valid(tokens_per_second) ? tokens_per_second : null,
+  };
 }

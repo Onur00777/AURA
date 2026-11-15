@@ -242,6 +242,7 @@ export function useChatSessions(
           content: result.reply,
           modelUsed: result.model_used,
           powerUsed: requestPower,
+          metrics: result.metrics,
         };
         updateSession([...conversation, assistantMessage], title);
       } catch (err) {

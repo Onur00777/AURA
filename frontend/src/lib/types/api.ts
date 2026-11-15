@@ -31,6 +31,13 @@ export type ChatRequest = {
 export type ChatResponse = {
   reply: string;
   model_used: string;
+  metrics?: ChatMetrics;
+};
+
+export type ChatMetrics = {
+  ttft_ms: number;
+  output_tokens: number;
+  tokens_per_second: number | null;
 };
 
 export type ChatRole = "user" | "assistant";
@@ -41,4 +48,5 @@ export type ChatMessage = {
   content: string;
   modelUsed?: string;
   powerUsed?: ChatPower;
+  metrics?: ChatMetrics;
 };
