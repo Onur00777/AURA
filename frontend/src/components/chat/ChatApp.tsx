@@ -184,12 +184,13 @@ export function ChatApp() {
               ) : null}
 
               <ChatInput
+                chatId={activeId}
                 disabled={!canSend}
                 generating={generating}
                 mode={mode}
                 power={power}
                 onPowerChange={handlePowerChange}
-                onSend={(text) => { setSearchTarget(null); void sendMessage(text); }}
+                onSend={(text, attachment) => { setSearchTarget(null); void sendMessage(text, attachment); }}
                 onStop={stopGeneration}
               />
             </>

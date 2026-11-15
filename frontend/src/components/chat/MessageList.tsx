@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useId, useRef } from "react";
 
 import { CopyMessageButton } from "@/components/chat/CopyMessageButton";
+import { AttachmentChip } from "@/components/chat/ComposerAttachment";
 import { EditableUserMessage } from "@/components/chat/EditableUserMessage";
 import { MessageContent } from "@/components/chat/MessageContent";
 import { RetryResponse } from "@/components/chat/RetryResponse";
@@ -106,6 +107,7 @@ export function MessageList({
                       </div>
                     ) : null}
 
+                    {message.attachment ? <div className="mb-1.5"><AttachmentChip file={message.attachment} /></div> : null}
                     {isUser ? (
                       <EditableUserMessage
                         content={message.content}

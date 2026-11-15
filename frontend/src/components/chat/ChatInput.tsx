@@ -13,6 +13,8 @@ import {
 } from "react";
 
 import { NovaGlow } from "@/components/ui/NovaGlow";
+import { AttachmentChip, AttachmentPicker, useComposerAttachment } from "@/components/chat/ComposerAttachment";
+import type { ChatAttachment } from "@/lib/types/api";
 import {
   AURA_POWER_TIERS,
   type AuraMode,
@@ -25,8 +27,9 @@ type ChatInputProps = {
   mode?: AuraMode;
   power?: AuraPower;
   onPowerChange?: (power: AuraPower) => void;
-  onSend: (text: string) => void;
+  onSend: (text: string, attachment?: ChatAttachment) => void;
   onStop?: () => void;
+  chatId?: string;
 };
 
 function PowerIcon({
@@ -103,11 +106,13 @@ export function ChatInput({
   onPowerChange,
   onSend,
   onStop,
+  chatId = "",
 }: ChatInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const pickerRef = useRef<HTMLDivElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuId = useId();
+  const attachment = useComposerAttachment(`${mode}:${chatId}`, disabled || generating);
 
   const resize = useCallback(() => {
     const el = textareaRef.current;
@@ -147,16 +152,17 @@ export function ChatInput({
   function handleSubmit(event?: FormEvent) {
     event?.preventDefault();
     const el = textareaRef.current;
-    if (!el || disabled || generating) return;
+    if (!el || disabled || generating || attachment.reading) return;
     const value = el.value;
     if (!value.trim()) return;
-    onSend(value);
+    onSend(value, attachment.file);
+    attachment.clear();
     el.value = "";
     resize();
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
-    if (event.key === "Enter" && !event.shiftKey) {
+    if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
       event.preventDefault();
       handleSubmit();
     }
@@ -291,6 +297,7 @@ export function ChatInput({
 
         <form
           onSubmit={handleSubmit}
+          {...attachment.dragHandlers}
           className={`group relative mx-auto max-w-3xl overflow-hidden rounded-xl ${
             engineering
               ? "bg-white/[0.08] p-[1.5px]"
@@ -305,6 +312,23 @@ export function ChatInput({
                 : "contents"
             }
           >
+            {attachment.dragging ? (
+              <div className="pointer-events-none absolute inset-0 z-20 grid place-items-center rounded-xl border border-dashed border-emerald-400/60 bg-[#0c0c0e]/95 text-xs text-emerald-200">
+                Drop a .txt or .md file
+              </div>
+            ) : null}
+            {attachment.file ? (
+              <AttachmentChip file={attachment.file} onRemove={attachment.clear}
+                disabled={disabled || generating || attachment.reading}
+                onSummarize={() => {
+                  if (!attachment.file || disabled || generating || attachment.reading) return;
+                  onSend("Summarize the attached file.", attachment.file);
+                  attachment.clear();
+                }}
+              />
+            ) : null}
+            {attachment.error ? <p role="alert" className="px-1 py-1 text-xs text-amber-300">{attachment.error}</p> : null}
+            {attachment.reading ? <p role="status" className="px-1 py-1 text-xs text-zinc-400">Reading file…</p> : null}
             <textarea
               ref={textareaRef}
               rows={1}
@@ -322,6 +346,7 @@ export function ChatInput({
             />
 
             <div className="mt-1 flex items-center justify-between gap-3 pl-1">
+              <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
                 aria-haspopup="listbox"
@@ -381,12 +406,14 @@ export function ChatInput({
                   />
                 </svg>
               </button>
+              <AttachmentPicker disabled={disabled || generating} onChoose={(files) => void attachment.choose(files)} />
+              </div>
 
               <button
                 type={generating ? "button" : "submit"}
                 onClick={generating ? onStop : undefined}
-                disabled={generating ? !onStop : disabled}
-                aria-label="Send message"
+                disabled={generating ? !onStop : disabled || attachment.reading}
+                aria-label={generating ? "Stop generation" : "Send message"}
                 className="flex h-8 items-center gap-1.5 rounded-lg bg-[#00FF41] px-3 text-xs font-semibold text-black transition-all hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00FF41]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0c0c0e] disabled:cursor-not-allowed disabled:bg-white/[0.06] disabled:text-zinc-600 disabled:hover:brightness-100"
               >
                 {generating ? (
