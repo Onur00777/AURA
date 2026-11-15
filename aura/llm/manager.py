@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import threading
+from time import perf_counter
 from concurrent.futures import ThreadPoolExecutor
 from collections.abc import AsyncIterator
 from contextlib import closing
@@ -261,6 +262,7 @@ class MultiModelManager:
         max_tokens: int,
         temperature: float,
     ) -> AsyncIterator[dict[str, Any]]:
+        started = perf_counter()
         loop = asyncio.get_running_loop()
         queue: asyncio.Queue[dict[str, Any] | None] = asyncio.Queue()
         stopped = threading.Event()
@@ -279,6 +281,9 @@ class MultiModelManager:
                 engine = self._engine_for(path)
                 if stopped.is_set():
                     return
+                first_text: float | None = None
+                last_text: float | None = None
+                parts: list[str] = []
                 with closing(engine.stream_messages(
                     messages, max_tokens=max_tokens, temperature=temperature
                 )) as chunks:
@@ -286,8 +291,22 @@ class MultiModelManager:
                         if stopped.is_set():
                             return
                         if chunk:
+                            last_text = perf_counter()
+                            if first_text is None:
+                                first_text = last_text
+                            parts.append(chunk)
                             publish({"type": "delta", "text": chunk})
-                publish({"type": "done", "model_used": path.name})
+                metrics = None
+                if first_text is not None and last_text is not None:
+                    tokens = engine.count_output_tokens("".join(parts))
+                    decode_time = last_text - first_text
+                    metrics = {
+                        "ttft_ms": round((first_text - started) * 1000),
+                        "output_tokens": tokens,
+                        "tokens_per_second": round((tokens - 1) / decode_time, 1)
+                        if decode_time > 0 and tokens > 1 else None,
+                    }
+                publish({"type": "done", "model_used": path.name, "metrics": metrics})
             except Exception as exc:
                 logger.exception("Streaming chat failed")
                 publish({"type": "error", "message": str(exc)})

@@ -218,3 +218,8 @@ class LocalLlamaEngine:
     def unload(self) -> None:
         """Drop the model reference so memory can be reclaimed."""
         self._llm = None
+
+    def count_output_tokens(self, text: str) -> int:
+        """Count tokens in the emitted text using the active model's tokenizer."""
+        assert self._llm is not None
+        return len(self._llm.tokenize(text.encode("utf-8"), add_bos=False))
