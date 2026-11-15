@@ -6,10 +6,11 @@ import { useEffect, useRef } from "react";
 import { CopyMessageButton } from "@/components/chat/CopyMessageButton";
 import { EditableUserMessage } from "@/components/chat/EditableUserMessage";
 import { MessageContent } from "@/components/chat/MessageContent";
+import { RetryResponse } from "@/components/chat/RetryResponse";
 import { TypingIndicator } from "@/components/chat/TypingIndicator";
 import { WorkspaceHero } from "@/components/chat/WorkspaceHero";
 import type { ChatMessage } from "@/lib/types/api";
-import type { AuraMode } from "@/lib/workspace/mode";
+import type { AuraMode, AuraPower } from "@/lib/workspace/mode";
 
 type MessageListProps = {
   messages: ChatMessage[];
@@ -20,6 +21,7 @@ type MessageListProps = {
   canSend?: boolean;
   onQuickAction?: (prompt: string) => void;
   onEdit?: (id: string, text: string) => void;
+  onRetry?: (id: string, power?: AuraPower) => void;
 };
 
 export function MessageList({
@@ -31,6 +33,7 @@ export function MessageList({
   canSend = false,
   onQuickAction,
   onEdit,
+  onRetry,
 }: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -97,6 +100,9 @@ export function MessageList({
                       content={message.content}
                       align={isUser ? "end" : "start"}
                     />
+                    {!isUser && onRetry ? (
+                      <RetryResponse disabled={!canSend || generating} onRetry={(power) => onRetry(message.id, power)} />
+                    ) : null}
                   </div>
                 </motion.div>
               );
