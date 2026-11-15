@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 
 import { ModeToggle } from "@/components/sidebar/ModeToggle";
+import { ChatSearch } from "@/components/sidebar/ChatSearch";
 import { StorageUsageBar } from "@/components/sidebar/StorageUsageBar";
 import type { ChatSession } from "@/hooks/useChatSessions";
 import type { StorageSnapshot } from "@/lib/storage/quota";
@@ -115,6 +116,10 @@ export function Sidebar({
         </button>
       </div>
 
+      <ChatSearch key={mode} sessions={recent} onSelect={(result) => {
+        onSelectChat(result.sessionId);
+        onCloseMobile();
+      }}>
       <div className="px-4 pb-1.5 pt-2">
         <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-zinc-600">
           {mode === "engineering" ? "CompE · Recent" : "Recent"}
@@ -165,6 +170,7 @@ export function Sidebar({
           })}
         </ul>
       </nav>
+      </ChatSearch>
 
       <div className="shrink-0 space-y-2 border-t border-white/[0.06] p-3">
         <StorageUsageBar storage={storage} onAutoTrim={onAutoTrim} />
