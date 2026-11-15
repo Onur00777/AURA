@@ -80,9 +80,45 @@ const GENERAL_QUICK_ACTIONS: QuickAction[] = [
     prompt: "Ask me what kinds of stories I enjoy and what mood I'm in, then suggest three books and briefly explain each pick.",
     icon: <ActionIcon><path d="M12 6v15M12 6c-3-2-6-3-10-2v15c4-1 7 0 10 2 3-2 6-3 10-2V4c-4-1-7 0-10 2Z" /></ActionIcon>,
   },
+  {
+    title: "Make a Study Plan",
+    hint: "A realistic one-week schedule",
+    prompt: "Help me make a one-week study plan. Ask about my deadline and available time, then include practice and review.",
+    icon: <ActionIcon><path d="M4 6h16M4 12h16M4 18h10" /></ActionIcon>,
+  },
+  {
+    title: "Start a Short Story",
+    hint: "Three opening scenes",
+    prompt: "Write three short opening scenes about a stranger returning a book with a handwritten note inside. Give each a different tone.",
+    icon: <ActionIcon><path d="m4 20 4-1L20 7l-3-3L5 16zm10-13 3 3" /></ActionIcon>,
+  },
+  {
+    title: "Organize a Small Space",
+    hint: "A 15-minute reset",
+    prompt: "Give me a 15-minute plan for organizing one cluttered shelf using things I already have.",
+    icon: <ActionIcon><path d="M4 5h16v14H4zM4 12h16m-11 0V5m6 14v-7" /></ActionIcon>,
+  },
 ];
 
 const ENGINEERING_QUICK_ACTIONS: QuickAction[] = [
+  {
+    title: "Trace an Interrupt",
+    hint: "Hardware to handler",
+    prompt: "Trace a timer interrupt from the hardware signal to resuming the interrupted process. Explain what state is saved and where.",
+    icon: <ActionIcon><path d="M3 15h5l3-8 3 10 3-5h4" /></ActionIcon>,
+  },
+  {
+    title: "Design a Ring Buffer",
+    hint: "Indices and wraparound",
+    prompt: "Sketch a fixed-size single-producer, single-consumer ring buffer in C. Explain wraparound, full versus empty, and the assumptions about synchronization.",
+    icon: <ActionIcon><path d="M20 11a8 8 0 1 0-2 6m2-10v5h-5" /></ActionIcon>,
+  },
+  {
+    title: "Trace an IPv4 Packet",
+    hint: "Routes, ARP, and TTL",
+    prompt: "Trace an IPv4 packet from a laptop to a host on another subnet. Explain where ARP is used and which headers change at each hop.",
+    icon: <ActionIcon><path d="M3 12h18m-5-5 5 5-5 5" /></ActionIcon>,
+  },
   {
     title: "Analyze C Pointer Logic",
     hint: "Memory, aliasing, UB",
