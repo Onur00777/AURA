@@ -78,7 +78,7 @@ export function useChatSessions(
   mode: AuraMode,
   power: AuraPower = "pulse",
 ) {
-  const [sessions, setSessions] = useState<ChatSession[]>(() => [createSession()]);
+  const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [activeId, setActiveId] = useState<string>("");
   const [pending, setPending] = useState<{
     sessionId: string;
@@ -86,7 +86,7 @@ export function useChatSessions(
     reply: string;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [hydrated, setHydrated] = useState(false);
+  const [loadedMode, setLoadedMode] = useState<AuraMode | null>(null);
   const [storageTick, setStorageTick] = useState(0);
   const sessionsRef = useRef(sessions);
   const loadedModeRef = useRef<AuraMode | null>(null);
@@ -103,7 +103,7 @@ export function useChatSessions(
     setActiveId(loadActiveId(mode, loaded));
     loadedModeRef.current = mode;
     setError(null);
-    setHydrated(true);
+    setLoadedMode(mode);
     return () => {
       activeRequestRef.current?.abort();
       activeRequestRef.current = null;
@@ -111,24 +111,22 @@ export function useChatSessions(
   }, [mode]);
 
   useEffect(() => {
-    if (!hydrated) return;
-    if (loadedModeRef.current !== mode) return;
+    if (loadedMode !== mode) return;
     const keys = storageKeysFor(mode);
     localStorage.setItem(keys.sessions, JSON.stringify(sessions));
     setStorageTick((n) => n + 1);
-  }, [sessions, hydrated, mode]);
+  }, [sessions, loadedMode, mode]);
 
   useEffect(() => {
-    if (!hydrated || !activeId) return;
-    if (loadedModeRef.current !== mode) return;
+    if (loadedMode !== mode || !activeId) return;
     const keys = storageKeysFor(mode);
     localStorage.setItem(keys.activeId, activeId);
     setStorageTick((n) => n + 1);
-  }, [activeId, hydrated, mode]);
+  }, [activeId, loadedMode, mode]);
 
   const storage: StorageSnapshot = useMemo(() => {
     void storageTick;
-    if (!hydrated) {
+    if (!loadedMode) {
       return {
         usedBytes: 0,
         quotaBytes: 5 * 1024 * 1024,
@@ -138,10 +136,10 @@ export function useChatSessions(
       };
     }
     return getStorageSnapshot();
-  }, [hydrated, storageTick]);
+  }, [loadedMode, storageTick]);
 
   const activeSession =
-    sessions.find((s) => s.id === activeId) ?? sessions[0] ?? null;
+    loadedMode === mode ? sessions.find((s) => s.id === activeId) ?? sessions[0] ?? null : null;
   const activePending = pending?.sessionId === activeSession?.id ? pending : null;
   const messages = activePending?.conversation ?? activeSession?.messages ?? [];
   const studyTopic = activeSession?.studyTopic;
@@ -364,7 +362,7 @@ export function useChatSessions(
   }, [activeId, generateReply, power]);
 
   return {
-    sessions,
+    sessions: loadedMode === mode ? sessions : [],
     activeId: activeSession?.id ?? "",
     messages,
     generating: pending !== null,
