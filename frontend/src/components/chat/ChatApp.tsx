@@ -8,6 +8,7 @@ import { ApiErrorBanner } from "@/components/chat/ApiErrorBanner";
 import { ChatHeader } from "@/components/chat/ChatHeader";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { MessageList } from "@/components/chat/MessageList";
+import { StudyControls } from "@/components/chat/StudyControls";
 import { SettingsView } from "@/components/settings/SettingsView";
 import { Sidebar } from "@/components/sidebar/Sidebar";
 import { useChatSessions } from "@/hooks/useChatSessions";
@@ -71,6 +72,10 @@ export function ChatApp() {
     sendMessage,
     editMessage,
     retryMessage,
+    studyTopic,
+    studyPhase,
+    startStudy,
+    advanceStudy,
   } = useChatSessions(selectedModel, mode, power);
 
   const canSend = Boolean(selectedModel) && !modelsLoading && !modelsError;
@@ -182,10 +187,21 @@ export function ChatApp() {
                   {chatError}
                 </p>
               ) : null}
+              {mode === "engineering" ? (
+                <StudyControls
+                  topic={studyTopic}
+                  phase={studyPhase}
+                  disabled={!canSend || generating}
+                  onStart={(topic) => { setSearchTarget(null); startStudy(topic); }}
+                  onAdvance={() => { setSearchTarget(null); advanceStudy(); }}
+                  onLeave={() => { stopGeneration(); setSearchTarget(null); newChat(); }}
+                />
+              ) : null}
 
               <ChatInput
                 chatId={activeId}
-                disabled={!canSend}
+                disabled={!canSend || Boolean(studyTopic && studyPhase !== "answer")}
+                studying={Boolean(studyTopic)}
                 generating={generating}
                 mode={mode}
                 power={power}

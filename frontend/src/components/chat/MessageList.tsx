@@ -112,7 +112,7 @@ export function MessageList({
                       <EditableUserMessage
                         content={message.content}
                         disabled={!canSend || busy}
-                        onSave={onEdit ? (text) => onEdit(message.id, text) : undefined}
+                        onSave={onEdit && message.studyStep !== "question" ? (text) => onEdit(message.id, text) : undefined}
                       />
                     ) : (
                       <div className="rounded-2xl border border-white/[0.05] bg-transparent px-1 py-1 sm:px-0">

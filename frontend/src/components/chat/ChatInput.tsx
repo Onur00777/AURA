@@ -30,6 +30,7 @@ type ChatInputProps = {
   onSend: (text: string, attachment?: ChatAttachment) => void;
   onStop?: () => void;
   chatId?: string;
+  studying?: boolean;
 };
 
 function PowerIcon({
@@ -107,12 +108,13 @@ export function ChatInput({
   onSend,
   onStop,
   chatId = "",
+  studying = false,
 }: ChatInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const pickerRef = useRef<HTMLDivElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuId = useId();
-  const attachment = useComposerAttachment(`${mode}:${chatId}`, disabled || generating);
+  const attachment = useComposerAttachment(`${mode}:${chatId}`, studying || disabled || generating);
 
   const resize = useCallback(() => {
     const el = textareaRef.current;
@@ -333,7 +335,9 @@ export function ChatInput({
               ref={textareaRef}
               rows={1}
               placeholder={
-                disabled
+                studying
+                  ? disabled ? "Continue the study session above…" : "Write your answer…"
+                  : disabled
                   ? "Select a model to begin…"
                   : mode === "engineering"
                     ? "Ask a Computer Engineering question…"
@@ -406,7 +410,7 @@ export function ChatInput({
                   />
                 </svg>
               </button>
-              <AttachmentPicker disabled={disabled || generating} onChoose={(files) => void attachment.choose(files)} />
+              {!studying ? <AttachmentPicker disabled={disabled || generating} onChoose={(files) => void attachment.choose(files)} /> : null}
               </div>
 
               <button

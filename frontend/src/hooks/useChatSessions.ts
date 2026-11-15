@@ -6,6 +6,7 @@ import { streamChat } from "@/lib/api/client";
 import { getStorageSnapshot, type StorageSnapshot } from "@/lib/storage/quota";
 import type { ChatAttachment, ChatMessage } from "@/lib/types/api";
 import { withAttachmentContext } from "@/lib/workspace/chatAttachment";
+import { getStudyPhase, studyQuestion, STUDY_TOPICS, type StudyTopic } from "@/lib/workspace/study";
 import {
   storageKeysFor,
   type AuraMode,
@@ -17,6 +18,7 @@ export type ChatSession = {
   title: string;
   messages: ChatMessage[];
   updatedAt: number;
+  studyTopic?: StudyTopic;
 };
 
 function createId(): string {
@@ -142,6 +144,8 @@ export function useChatSessions(
     sessions.find((s) => s.id === activeId) ?? sessions[0] ?? null;
   const activePending = pending?.sessionId === activeSession?.id ? pending : null;
   const messages = activePending?.conversation ?? activeSession?.messages ?? [];
+  const studyTopic = activeSession?.studyTopic;
+  const studyPhase = studyTopic ? getStudyPhase(activeSession.messages) : undefined;
 
   const stopGeneration = useCallback(() => {
     const request = activeRequestRef.current;
@@ -212,6 +216,7 @@ export function useChatSessions(
       const request = new AbortController();
       activeRequestRef.current = request;
       const sessionId = original.id;
+      const studyStep = conversation.at(-1)?.studyStep;
       const updateSession = (messages: ChatMessage[], nextTitle: string) => {
         const updatedAt = Date.now();
         setSessions((prev) =>
@@ -234,6 +239,7 @@ export function useChatSessions(
           messages: toApiMessages(conversation),
           mode,
           power: requestPower,
+          study: original.studyTopic && studyStep ? { topic: original.studyTopic, step: studyStep } : undefined,
         }, request.signal, (reply) => {
           if (activeRequestRef.current === request) {
             setPending({ sessionId, conversation, reply });
@@ -247,6 +253,7 @@ export function useChatSessions(
           modelUsed: result.model_used,
           powerUsed: requestPower,
           metrics: result.metrics,
+          studyStep,
         };
         updateSession([...conversation, assistantMessage], title);
       } catch (err) {
@@ -281,8 +288,12 @@ export function useChatSessions(
       const content = text.trim();
       const session = sessionsRef.current.find((item) => item.id === activeId);
       if (!content || !session) return;
+      if (session.studyTopic && getStudyPhase(session.messages) !== "answer") return;
 
-      const userMessage: ChatMessage = { id: createId(), role: "user", content, attachment };
+      const userMessage: ChatMessage = {
+        id: createId(), role: "user", content, attachment,
+        studyStep: session.studyTopic ? "feedback" : undefined,
+      };
       const title = session.messages.length ? session.title : titleFromMessage(content);
       await generateReply(session, [...session.messages, userMessage], title, power, false);
     },
@@ -297,7 +308,7 @@ export function useChatSessions(
 
       const index = session.messages.findIndex((item) => item.id === messageId);
       const message = session.messages[index];
-      if (message?.role !== "user") return;
+      if (message?.role !== "user" || message.studyStep === "question") return;
 
       const conversation = [...session.messages.slice(0, index), { ...message, content }];
       const title = index === 0 ? titleFromMessage(content) : session.title;
@@ -326,6 +337,32 @@ export function useChatSessions(
     [activeId, generateReply, power],
   );
 
+  const startStudy = useCallback((topic: StudyTopic) => {
+    if (!selectedModel || activeRequestRef.current || mode !== "engineering" || loadedModeRef.current !== mode) return;
+    const title = `Study · ${STUDY_TOPICS[topic]}`;
+    const session = { ...createSession(), title, studyTopic: topic };
+    const question = studyQuestion(topic, false);
+    const turn: ChatMessage = { id: createId(), role: "user", content: question.text, studyStep: question.step };
+    setSessions((prev) => [session, ...prev]);
+    setActiveId(session.id);
+    void generateReply(session, [turn], title, power, false);
+  }, [generateReply, mode, power, selectedModel]);
+
+  const advanceStudy = useCallback(() => {
+    const session = sessionsRef.current.find((item) => item.id === activeId);
+    if (!session?.studyTopic) return;
+    const phase = getStudyPhase(session.messages);
+    if (phase === "retry") {
+      const index = session.messages.findLastIndex((message) => message.role === "user" && message.studyStep);
+      if (index >= 0) void generateReply(session, session.messages.slice(0, index + 1), session.title, power, true);
+      return;
+    }
+    if (phase !== "next" && phase !== "start") return;
+    const question = studyQuestion(session.studyTopic, phase === "next");
+    const turn: ChatMessage = { id: createId(), role: "user", content: question.text, studyStep: question.step };
+    void generateReply(session, [...session.messages, turn], session.title, power, false);
+  }, [activeId, generateReply, power]);
+
   return {
     sessions,
     activeId: activeSession?.id ?? "",
@@ -343,5 +380,9 @@ export function useChatSessions(
     sendMessage,
     editMessage,
     retryMessage,
+    studyTopic,
+    studyPhase,
+    startStudy,
+    advanceStudy,
   };
 }
