@@ -26,6 +26,7 @@ type ChatInputProps = {
   power?: AuraPower;
   onPowerChange?: (power: AuraPower) => void;
   onSend: (text: string) => void;
+  onStop?: () => void;
 };
 
 function PowerIcon({
@@ -101,6 +102,7 @@ export function ChatInput({
   power = "pulse",
   onPowerChange,
   onSend,
+  onStop,
 }: ChatInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const pickerRef = useRef<HTMLDivElement>(null);
@@ -381,13 +383,14 @@ export function ChatInput({
               </button>
 
               <button
-                type="submit"
-                disabled={disabled || generating}
+                type={generating ? "button" : "submit"}
+                onClick={generating ? onStop : undefined}
+                disabled={generating ? !onStop : disabled}
                 aria-label="Send message"
                 className="flex h-8 items-center gap-1.5 rounded-lg bg-[#00FF41] px-3 text-xs font-semibold text-black transition-all hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00FF41]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0c0c0e] disabled:cursor-not-allowed disabled:bg-white/[0.06] disabled:text-zinc-600 disabled:hover:brightness-100"
               >
                 {generating ? (
-                  <span className="h-3 w-3 animate-spin rounded-full border-2 border-black/30 border-t-black" />
+                  "Stop"
                 ) : (
                   <>
                     Send

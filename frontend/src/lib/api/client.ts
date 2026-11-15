@@ -88,3 +88,55 @@ export async function postChat(body: ChatRequest): Promise<ChatResponse> {
     throw friendlyFetchError(err);
   }
 }
+
+export async function streamChat(
+  body: ChatRequest,
+  signal: AbortSignal,
+  onDelta: (text: string) => void,
+): Promise<ChatResponse> {
+  try {
+    const res = await fetch(`${getApiBaseUrl()}/api/chat/stream`, {
+      method: "POST",
+      headers: { Accept: "application/x-ndjson", "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal,
+    });
+    if (!res.ok) throw new Error(await parseError(res));
+    if (!res.body) throw new Error("Missing response stream");
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let reply = "";
+
+    try {
+      for (;;) {
+        const { done, value } = await reader.read();
+        buffer += decoder.decode(value, { stream: !done });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+        if (done && buffer.trim()) lines.push(buffer);
+
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          const event = JSON.parse(line);
+          if (event.type === "error") throw new Error(event.message);
+          if (event.type === "delta" && typeof event.text === "string") {
+            reply += event.text;
+            onDelta(reply);
+          }
+          if (event.type === "done" && typeof event.model_used === "string") {
+            if (!reply.trim()) throw new Error("The model returned an empty reply");
+            return { reply: reply.trim(), model_used: event.model_used };
+          }
+        }
+        if (done) throw new Error("The response stream ended before completion");
+      }
+    } finally {
+      await reader.cancel().catch(() => {});
+      reader.releaseLock();
+    }
+  } catch (err) {
+    throw friendlyFetchError(err);
+  }
+}

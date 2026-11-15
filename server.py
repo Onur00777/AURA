@@ -15,12 +15,14 @@ API only:
 from __future__ import annotations
 
 import logging
+import json
 import os
-from contextlib import asynccontextmanager
+from contextlib import aclosing, asynccontextmanager
 from typing import Any, List, Literal
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from aura.config import HIGH_POWER_MODE, load_config
@@ -183,9 +185,7 @@ async def get_models() -> dict[str, Any]:
     }
 
 
-@app.post("/api/chat", response_model=ChatResponse)
-async def post_chat(request: ChatRequest) -> ChatResponse:
-    """Generate a reply with full multi-turn context via create_chat_completion."""
+def chat_options(request: ChatRequest) -> tuple[list[dict[str, str]], dict[str, Any]]:
     formatted: list[dict[str, str]] = [
         {"role": msg.role, "content": msg.content} for msg in request.messages
     ]
@@ -212,6 +212,13 @@ async def post_chat(request: ChatRequest) -> ChatResponse:
         profile["max_tokens"],
         len(formatted),
     )
+    return formatted, profile
+
+
+@app.post("/api/chat", response_model=ChatResponse)
+async def post_chat(request: ChatRequest) -> ChatResponse:
+    """Generate a reply with full multi-turn context via create_chat_completion."""
+    formatted, profile = chat_options(request)
 
     try:
         result = await _manager.complete_messages(
@@ -230,6 +237,23 @@ async def post_chat(request: ChatRequest) -> ChatResponse:
         reply=result["reply"],
         model_used=result["model_used"],
     )
+
+
+@app.post("/api/chat/stream")
+async def stream_chat(request: ChatRequest) -> StreamingResponse:
+    formatted, profile = chat_options(request)
+
+    async def events():
+        async with aclosing(_manager.stream_messages(
+            formatted,
+            model=request.model,
+            max_tokens=profile["max_tokens"],
+            temperature=profile["temperature"],
+        )) as stream:
+            async for event in stream:
+                yield json.dumps(event, ensure_ascii=False) + "\n"
+
+    return StreamingResponse(events(), media_type="application/x-ndjson")
 
 
 @app.get("/health")

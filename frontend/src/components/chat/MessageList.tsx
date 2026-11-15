@@ -15,6 +15,8 @@ import type { AuraMode, AuraPower } from "@/lib/workspace/mode";
 type MessageListProps = {
   messages: ChatMessage[];
   generating: boolean;
+  busy?: boolean;
+  streamingReply?: string;
   chatId?: string;
   modelLabel?: string;
   mode?: AuraMode;
@@ -27,6 +29,8 @@ type MessageListProps = {
 export function MessageList({
   messages,
   generating,
+  busy = generating,
+  streamingReply,
   chatId,
   modelLabel,
   mode = "general",
@@ -39,7 +43,7 @@ export function MessageList({
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [messages, generating]);
+  }, [messages, generating, streamingReply]);
 
   const empty = messages.length === 0 && !generating;
 
@@ -88,7 +92,7 @@ export function MessageList({
                     {isUser ? (
                       <EditableUserMessage
                         content={message.content}
-                        disabled={!canSend || generating}
+                        disabled={!canSend || busy}
                         onSave={onEdit ? (text) => onEdit(message.id, text) : undefined}
                       />
                     ) : (
@@ -101,7 +105,7 @@ export function MessageList({
                       align={isUser ? "end" : "start"}
                     />
                     {!isUser && onRetry ? (
-                      <RetryResponse disabled={!canSend || generating} onRetry={(power) => onRetry(message.id, power)} />
+                      <RetryResponse disabled={!canSend || busy} onRetry={(power) => onRetry(message.id, power)} />
                     ) : null}
                   </div>
                 </motion.div>
@@ -109,7 +113,11 @@ export function MessageList({
             })}
           </AnimatePresence>
 
-          {generating ? <TypingIndicator /> : null}
+          {streamingReply ? (
+            <div className="rounded-2xl border border-white/[0.05] px-1 py-1 sm:px-0" aria-busy="true">
+              <MessageContent content={streamingReply} />
+            </div>
+          ) : generating ? <TypingIndicator /> : null}
           <div ref={bottomRef} className="h-px w-full shrink-0" />
         </div>
       )}

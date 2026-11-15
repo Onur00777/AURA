@@ -6,6 +6,8 @@ import asyncio
 import logging
 import threading
 from concurrent.futures import ThreadPoolExecutor
+from collections.abc import AsyncIterator
+from contextlib import closing
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -250,3 +252,52 @@ class MultiModelManager:
                 logger.debug("Unloaded %s", Path(key).name)
             self._engines.clear()
             self._active_key = None
+
+    async def stream_messages(
+        self,
+        messages: list[dict[str, str]],
+        *,
+        model: str,
+        max_tokens: int,
+        temperature: float,
+    ) -> AsyncIterator[dict[str, Any]]:
+        loop = asyncio.get_running_loop()
+        queue: asyncio.Queue[dict[str, Any] | None] = asyncio.Queue()
+        stopped = threading.Event()
+
+        def publish(item: dict[str, Any] | None) -> None:
+            if not stopped.is_set():
+                loop.call_soon_threadsafe(queue.put_nowait, item)
+
+        def produce() -> None:
+            try:
+                if stopped.is_set():
+                    return
+                path = resolve_requested_model(model, models_dir=self._models_dir)
+                if path is None:
+                    raise FileNotFoundError(f"Model not found: {model!r}")
+                engine = self._engine_for(path)
+                if stopped.is_set():
+                    return
+                with closing(engine.stream_messages(
+                    messages, max_tokens=max_tokens, temperature=temperature
+                )) as chunks:
+                    for chunk in chunks:
+                        if stopped.is_set():
+                            return
+                        if chunk:
+                            publish({"type": "delta", "text": chunk})
+                publish({"type": "done", "model_used": path.name})
+            except Exception as exc:
+                logger.exception("Streaming chat failed")
+                publish({"type": "error", "message": str(exc)})
+            finally:
+                publish(None)
+
+        worker = loop.run_in_executor(_EXECUTOR, produce)
+        try:
+            while (item := await queue.get()) is not None:
+                yield item
+        finally:
+            stopped.set()
+            worker.cancel()

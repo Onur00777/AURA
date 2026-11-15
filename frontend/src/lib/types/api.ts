@@ -40,4 +40,5 @@ export type ChatMessage = {
   role: ChatRole;
   content: string;
   modelUsed?: string;
+  powerUsed?: ChatPower;
 };

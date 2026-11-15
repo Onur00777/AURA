@@ -57,6 +57,10 @@ export function ChatApp() {
     activeId,
     messages,
     generating,
+    activeGenerating,
+    streamingReply,
+    stopGeneration,
+    error: chatError,
     storage,
     newChat,
     selectChat,
@@ -155,17 +159,24 @@ export function ChatApp() {
             <>
               <MessageList
                 messages={messages}
-                generating={generating}
+                generating={activeGenerating}
+                busy={generating}
+                streamingReply={streamingReply}
                 chatId={activeId}
                 mode={mode}
                 modelLabel={
                   selectedModel ? getModelShortName(selectedModel) : undefined
                 }
-                canSend={canSend}
+                canSend={canSend && !generating}
                 onQuickAction={sendMessage}
                 onEdit={editMessage}
                 onRetry={retryMessage}
               />
+              {chatError ? (
+                <p role="alert" className="mx-auto mb-2 w-full max-w-3xl px-4 text-xs text-amber-300">
+                  {chatError}
+                </p>
+              ) : null}
 
               <ChatInput
                 disabled={!canSend}
@@ -174,6 +185,7 @@ export function ChatApp() {
                 power={power}
                 onPowerChange={handlePowerChange}
                 onSend={sendMessage}
+                onStop={stopGeneration}
               />
             </>
           )}

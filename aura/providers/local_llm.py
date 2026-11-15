@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
 
@@ -148,6 +149,24 @@ class LocalLlamaEngine:
         self.load()
         assert self._llm is not None
 
+        result = self._llm.create_chat_completion(
+            **self._chat_options(messages, max_tokens, temperature),
+        )
+        choice = result["choices"][0]["message"]["content"]
+        usage = result.get("usage") or {}
+        return {
+            "text": str(choice).strip(),
+            "usage": {
+                "prompt_tokens": int(usage.get("prompt_tokens", 0)),
+                "completion_tokens": int(usage.get("completion_tokens", 0)),
+                "total_tokens": int(usage.get("total_tokens", 0)),
+            },
+            "raw": result,
+        }
+
+    def _chat_options(
+        self, messages: list[dict[str, str]], max_tokens: int | None, temperature: float | None
+    ) -> dict[str, Any]:
         cleaned: list[dict[str, str]] = []
         for turn in messages:
             role = (turn.get("role") or "user").strip().lower()
@@ -168,22 +187,33 @@ class LocalLlamaEngine:
             float(temperature) if temperature is not None else self.temperature
         )
 
-        result = self._llm.create_chat_completion(
-            messages=cleaned,
-            max_tokens=effective_max_tokens,
-            temperature=effective_temp,
-        )
-        choice = result["choices"][0]["message"]["content"]
-        usage = result.get("usage") or {}
         return {
-            "text": str(choice).strip(),
-            "usage": {
-                "prompt_tokens": int(usage.get("prompt_tokens", 0)),
-                "completion_tokens": int(usage.get("completion_tokens", 0)),
-                "total_tokens": int(usage.get("total_tokens", 0)),
-            },
-            "raw": result,
+            "messages": cleaned,
+            "max_tokens": effective_max_tokens,
+            "temperature": effective_temp,
         }
+
+    def stream_messages(
+        self,
+        messages: list[dict[str, str]],
+        *,
+        max_tokens: int,
+        temperature: float,
+    ) -> Iterator[str]:
+        self.load()
+        assert self._llm is not None
+        chunks = self._llm.create_chat_completion(
+            **self._chat_options(messages, max_tokens, temperature), stream=True
+        )
+        try:
+            for chunk in chunks:
+                choices = chunk.get("choices") or []
+                if choices:
+                    yield choices[0].get("delta", {}).get("content") or ""
+        finally:
+            close = getattr(chunks, "close", None)
+            if close is not None:
+                close()
 
     def unload(self) -> None:
         """Drop the model reference so memory can be reclaimed."""

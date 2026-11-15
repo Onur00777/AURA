@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { postChat } from "@/lib/api/client";
+import { streamChat } from "@/lib/api/client";
 import { getStorageSnapshot, type StorageSnapshot } from "@/lib/storage/quota";
 import type { ChatMessage } from "@/lib/types/api";
 import {
@@ -74,20 +74,24 @@ export function useChatSessions(
 ) {
   const [sessions, setSessions] = useState<ChatSession[]>(() => [createSession()]);
   const [activeId, setActiveId] = useState<string>("");
-  const [generating, setGenerating] = useState(false);
+  const [pending, setPending] = useState<{
+    sessionId: string;
+    conversation: ChatMessage[];
+    reply: string;
+  } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [storageTick, setStorageTick] = useState(0);
   const sessionsRef = useRef(sessions);
   const loadedModeRef = useRef<AuraMode | null>(null);
-  const activeRequestRef = useRef<symbol | null>(null);
+  const activeRequestRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     sessionsRef.current = sessions;
   }, [sessions]);
 
   useEffect(() => {
-    setGenerating(false);
+    setPending(null);
     const loaded = loadSessions(mode);
     setSessions(loaded);
     setActiveId(loadActiveId(mode, loaded));
@@ -95,6 +99,7 @@ export function useChatSessions(
     setError(null);
     setHydrated(true);
     return () => {
+      activeRequestRef.current?.abort();
       activeRequestRef.current = null;
     };
   }, [mode]);
@@ -131,7 +136,15 @@ export function useChatSessions(
 
   const activeSession =
     sessions.find((s) => s.id === activeId) ?? sessions[0] ?? null;
-  const messages = activeSession?.messages ?? [];
+  const activePending = pending?.sessionId === activeSession?.id ? pending : null;
+  const messages = activePending?.conversation ?? activeSession?.messages ?? [];
+
+  const stopGeneration = useCallback(() => {
+    const request = activeRequestRef.current;
+    activeRequestRef.current = null;
+    request?.abort();
+    setPending(null);
+  }, []);
 
   const newChat = useCallback(() => {
     const session = createSession();
@@ -192,7 +205,7 @@ export function useChatSessions(
     ) => {
       if (!selectedModel || activeRequestRef.current || loadedModeRef.current !== mode) return;
 
-      const request = Symbol();
+      const request = new AbortController();
       activeRequestRef.current = request;
       const sessionId = original.id;
       const updateSession = (messages: ChatMessage[], nextTitle: string) => {
@@ -208,15 +221,19 @@ export function useChatSessions(
 
       // Keep the saved branch until a replacement answer is available.
       if (!replacesHistory) updateSession(conversation, title);
-      setGenerating(true);
+      setPending({ sessionId, conversation, reply: "" });
       setError(null);
 
       try {
-        const result = await postChat({
+        const result = await streamChat({
           model: selectedModel,
           messages: toApiMessages(conversation),
           mode,
           power: requestPower,
+        }, request.signal, (reply) => {
+          if (activeRequestRef.current === request) {
+            setPending({ sessionId, conversation, reply });
+          }
         });
         if (activeRequestRef.current !== request) return;
         const assistantMessage: ChatMessage = {
@@ -224,14 +241,17 @@ export function useChatSessions(
           role: "assistant",
           content: result.reply,
           modelUsed: result.model_used,
+          powerUsed: requestPower,
         };
         updateSession([...conversation, assistantMessage], title);
       } catch (err) {
         if (activeRequestRef.current !== request) return;
         const message =
           err instanceof Error ? err.message : "Chat request failed";
-        setError(message);
-        if (replacesHistory) return;
+        if (replacesHistory) {
+          setError(message);
+          return;
+        }
         const withError: ChatMessage[] = [
           ...conversation,
           {
@@ -244,7 +264,7 @@ export function useChatSessions(
       } finally {
         if (activeRequestRef.current === request) {
           activeRequestRef.current = null;
-          setGenerating(false);
+          setPending(null);
         }
       }
     },
@@ -282,12 +302,13 @@ export function useChatSessions(
   );
 
   const retryMessage = useCallback(
-    async (messageId: string, requestPower: AuraPower = power) => {
+    async (messageId: string, requestPower?: AuraPower) => {
       const session = sessionsRef.current.find((item) => item.id === activeId);
       if (!session) return;
 
       const index = session.messages.findIndex((item) => item.id === messageId);
-      if (session.messages[index]?.role !== "assistant") return;
+      const reply = session.messages[index];
+      if (reply?.role !== "assistant") return;
 
       // The answer may follow another assistant entry in restored history.
       let userIndex = index - 1;
@@ -295,7 +316,7 @@ export function useChatSessions(
       if (userIndex < 0 || !session.messages[userIndex].content.trim()) return;
 
       const conversation = session.messages.slice(0, userIndex + 1);
-      await generateReply(session, conversation, session.title, requestPower, true);
+      await generateReply(session, conversation, session.title, requestPower ?? reply.powerUsed ?? power, true);
     },
     [activeId, generateReply, power],
   );
@@ -304,7 +325,10 @@ export function useChatSessions(
     sessions,
     activeId: activeSession?.id ?? "",
     messages,
-    generating,
+    generating: pending !== null,
+    activeGenerating: activePending !== null,
+    streamingReply: activePending?.reply ?? "",
+    stopGeneration,
     error,
     storage,
     newChat,
