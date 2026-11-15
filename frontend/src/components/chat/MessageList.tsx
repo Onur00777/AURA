@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useRef } from "react";
+import { useEffect, useId, useRef } from "react";
 
 import { CopyMessageButton } from "@/components/chat/CopyMessageButton";
 import { EditableUserMessage } from "@/components/chat/EditableUserMessage";
@@ -25,6 +25,7 @@ type MessageListProps = {
   onQuickAction?: (prompt: string) => void;
   onEdit?: (id: string, text: string) => void;
   onRetry?: (id: string, power?: AuraPower) => void;
+  searchTarget?: { messageId: string } | null;
 };
 
 export function MessageList({
@@ -39,12 +40,23 @@ export function MessageList({
   onQuickAction,
   onEdit,
   onRetry,
+  searchTarget,
 }: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
+  const listId = useId();
+  const hasTarget = messages.some((message) => message.id === searchTarget?.messageId);
 
   useEffect(() => {
+    if (hasTarget) return;
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [messages, generating, streamingReply]);
+  }, [messages, generating, streamingReply, hasTarget]);
+
+  useEffect(() => {
+    if (!searchTarget || !hasTarget) return;
+    const target = document.getElementById(`${listId}-${searchTarget.messageId}`);
+    target?.focus({ preventScroll: true });
+    target?.scrollIntoView({ block: "center" });
+  }, [searchTarget, hasTarget, listId]);
 
   const empty = messages.length === 0 && !generating;
 
@@ -66,10 +78,14 @@ export function MessageList({
               return (
                 <motion.div
                   key={message.id}
+                  id={`${listId}-${message.id}`}
+                  tabIndex={searchTarget?.messageId === message.id ? -1 : undefined}
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.22, ease: "easeOut" }}
-                  className={`flex ${isUser ? "justify-end" : "justify-start"}`}
+                  className={`flex ${isUser ? "justify-end" : "justify-start"} ${
+                    searchTarget?.messageId === message.id ? "rounded-xl ring-2 ring-emerald-400/50 ring-offset-4 ring-offset-[#080808]" : ""
+                  }`}
                 >
                   <div
                     className={`min-w-0 ${isUser ? "max-w-[85%] sm:max-w-[75%]" : "w-full"}`}

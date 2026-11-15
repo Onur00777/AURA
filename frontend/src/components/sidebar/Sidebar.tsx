@@ -18,7 +18,7 @@ type SidebarProps = {
   generating: boolean;
   onModeChange: (mode: AuraMode) => void;
   onNewChat: () => void;
-  onSelectChat: (id: string) => void;
+  onSelectChat: (id: string, messageId?: string) => void;
   onDeleteChat: (id: string) => void;
   onAutoTrim: () => void;
   onCloseMobile: () => void;
@@ -117,7 +117,7 @@ export function Sidebar({
       </div>
 
       <ChatSearch key={mode} sessions={recent} onSelect={(result) => {
-        onSelectChat(result.sessionId);
+        onSelectChat(result.sessionId, result.messageId);
         onCloseMobile();
       }}>
       <div className="px-4 pb-1.5 pt-2">

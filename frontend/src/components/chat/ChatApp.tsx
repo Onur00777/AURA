@@ -27,6 +27,7 @@ export function ChatApp() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [mode, setMode] = useState<AuraMode>("general");
   const [power, setPower] = useState<AuraPower>("pulse");
+  const [searchTarget, setSearchTarget] = useState<{ sessionId: string; messageId: string } | null>(null);
 
   useEffect(() => {
     setMode(loadAuraMode());
@@ -34,6 +35,7 @@ export function ChatApp() {
   }, []);
 
   function handleModeChange(next: AuraMode) {
+    setSearchTarget(null);
     setMode(next);
     persistAuraMode(next);
   }
@@ -98,10 +100,12 @@ export function ChatApp() {
         generating={generating}
         onModeChange={handleModeChange}
         onNewChat={() => {
+          setSearchTarget(null);
           newChat();
           setSettingsOpen(false);
         }}
-        onSelectChat={(id) => {
+        onSelectChat={(id, messageId) => {
+          setSearchTarget(messageId ? { sessionId: id, messageId } : null);
           selectChat(id);
           setSettingsOpen(false);
         }}
@@ -163,14 +167,15 @@ export function ChatApp() {
                 busy={generating}
                 streamingReply={streamingReply}
                 chatId={activeId}
+                searchTarget={searchTarget?.sessionId === activeId ? searchTarget : null}
                 mode={mode}
                 modelLabel={
                   selectedModel ? getModelShortName(selectedModel) : undefined
                 }
                 canSend={canSend && !generating}
                 onQuickAction={sendMessage}
-                onEdit={editMessage}
-                onRetry={retryMessage}
+                onEdit={(id, text) => { setSearchTarget(null); void editMessage(id, text); }}
+                onRetry={(id, profile) => { setSearchTarget(null); void retryMessage(id, profile); }}
               />
               {chatError ? (
                 <p role="alert" className="mx-auto mb-2 w-full max-w-3xl px-4 text-xs text-amber-300">
@@ -184,7 +189,7 @@ export function ChatApp() {
                 mode={mode}
                 power={power}
                 onPowerChange={handlePowerChange}
-                onSend={sendMessage}
+                onSend={(text) => { setSearchTarget(null); void sendMessage(text); }}
                 onStop={stopGeneration}
               />
             </>
