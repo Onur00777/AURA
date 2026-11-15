@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { motion, useReducedMotion } from "framer-motion";
+import { usePromptSuggestions } from "@/hooks/usePromptSuggestions";
 
 import type { AuraMode } from "@/lib/workspace/mode";
 
@@ -280,9 +281,9 @@ export function WorkspaceHero({
 }: WorkspaceHeroProps) {
   const reduceMotion = useReducedMotion();
   const engineering = mode === "engineering";
-  const actions = pickThree(
-    engineering ? ENGINEERING_QUICK_ACTIONS : GENERAL_QUICK_ACTIONS,
-    chatId,
+  const pool = engineering ? ENGINEERING_QUICK_ACTIONS : GENERAL_QUICK_ACTIONS;
+  const { actions, refresh, revision } = usePromptSuggestions(
+    `${mode}:${chatId}`, pool, pickThree(pool, chatId),
   );
   const actionsEnabled = canSend && Boolean(onQuickAction);
 
@@ -325,10 +326,22 @@ export function WorkspaceHero({
         </div>
 
         <div className="border-t border-white/[0.08] bg-black/25 px-4 pb-4 pt-3.5 sm:px-5 sm:pb-5">
-          <h3 className="mb-2.5 px-1 text-xs font-medium text-zinc-400">
-            Start with a prompt
-          </h3>
-          <div className="grid gap-2 sm:grid-cols-3">
+          <div className="mb-2.5 flex flex-wrap items-center justify-between gap-1 px-1">
+            <h3 className="text-xs font-medium text-zinc-400">Start with a prompt</h3>
+            <button
+              type="button"
+              onClick={refresh}
+              className="inline-flex items-center gap-1.5 rounded-md px-1.5 py-1 text-xs text-zinc-400 hover:text-(--hero-accent) focus-visible:outline-(--hero-accent)"
+            >
+              <motion.svg animate={{ rotate: reduceMotion ? 0 : revision * 360 }} transition={{ duration: 0.3 }}
+                aria-hidden viewBox="0 0 24 24" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <path d="M20 11a8 8 0 1 0-2 6m2-10v5h-5" />
+              </motion.svg>
+              Refresh prompts
+            </button>
+          </div>
+          <motion.div key={revision} initial={reduceMotion || revision === 0 ? false : { opacity: 0, y: 3 }}
+            animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18 }} className="grid gap-2 sm:grid-cols-3">
             {actions.map((action) => (
               <button
                 key={action.title}
@@ -353,7 +366,7 @@ export function WorkspaceHero({
                 </span>
               </button>
             ))}
-          </div>
+          </motion.div>
         </div>
       </motion.section>
     </div>
