@@ -4,7 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { streamChat } from "@/lib/api/client";
 import { getStorageSnapshot, type StorageSnapshot } from "@/lib/storage/quota";
-import type { ChatMessage } from "@/lib/types/api";
+import type { ChatAttachment, ChatMessage } from "@/lib/types/api";
+import { withAttachmentContext } from "@/lib/workspace/chatAttachment";
 import {
   storageKeysFor,
   type AuraMode,
@@ -64,7 +65,10 @@ function loadActiveId(mode: AuraMode, sessions: ChatSession[]): string {
 function toApiMessages(messages: ChatMessage[]) {
   return messages
     .filter((m) => m.content.trim().length > 0)
-    .map(({ role, content }) => ({ role, content }));
+    .map(({ role, content, attachment }) => ({
+      role,
+      content: attachment ? withAttachmentContext(content, attachment) : content,
+    }));
 }
 
 export function useChatSessions(
@@ -273,12 +277,12 @@ export function useChatSessions(
   );
 
   const sendMessage = useCallback(
-    async (text: string) => {
+    async (text: string, attachment?: ChatAttachment) => {
       const content = text.trim();
       const session = sessionsRef.current.find((item) => item.id === activeId);
       if (!content || !session) return;
 
-      const userMessage: ChatMessage = { id: createId(), role: "user", content };
+      const userMessage: ChatMessage = { id: createId(), role: "user", content, attachment };
       const title = session.messages.length ? session.title : titleFromMessage(content);
       await generateReply(session, [...session.messages, userMessage], title, power, false);
     },

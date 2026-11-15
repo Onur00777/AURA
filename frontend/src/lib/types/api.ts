@@ -42,6 +42,8 @@ export type ChatMetrics = {
 
 export type ChatRole = "user" | "assistant";
 
+export type ChatAttachment = { name: string; size: number; text: string };
+
 export type ChatMessage = {
   id: string;
   role: ChatRole;
@@ -49,4 +51,5 @@ export type ChatMessage = {
   modelUsed?: string;
   powerUsed?: ChatPower;
   metrics?: ChatMetrics;
+  attachment?: ChatAttachment;
 };
