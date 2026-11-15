@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef } from "react";
 
 import { CopyMessageButton } from "@/components/chat/CopyMessageButton";
+import { EditableUserMessage } from "@/components/chat/EditableUserMessage";
 import { MessageContent } from "@/components/chat/MessageContent";
 import { TypingIndicator } from "@/components/chat/TypingIndicator";
 import { WorkspaceHero } from "@/components/chat/WorkspaceHero";
@@ -18,6 +19,7 @@ type MessageListProps = {
   mode?: AuraMode;
   canSend?: boolean;
   onQuickAction?: (prompt: string) => void;
+  onEdit?: (id: string, text: string) => void;
 };
 
 export function MessageList({
@@ -28,6 +30,7 @@ export function MessageList({
   mode = "general",
   canSend = false,
   onQuickAction,
+  onEdit,
 }: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -80,11 +83,11 @@ export function MessageList({
                     ) : null}
 
                     {isUser ? (
-                      <div className="rounded-xl border border-white/[0.08] bg-[#0c0c0e] px-4 py-3 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
-                        <p className="whitespace-pre-wrap text-[14.5px] leading-[1.65] text-[#e8e8ed]">
-                          {message.content}
-                        </p>
-                      </div>
+                      <EditableUserMessage
+                        content={message.content}
+                        disabled={!canSend || generating}
+                        onSave={onEdit ? (text) => onEdit(message.id, text) : undefined}
+                      />
                     ) : (
                       <div className="rounded-2xl border border-white/[0.05] bg-transparent px-1 py-1 sm:px-0">
                         <MessageContent content={message.content} />

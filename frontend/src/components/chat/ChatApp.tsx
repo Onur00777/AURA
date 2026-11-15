@@ -63,6 +63,7 @@ export function ChatApp() {
     deleteSession,
     trimOldest,
     sendMessage,
+    editMessage,
   } = useChatSessions(selectedModel, mode, power);
 
   const canSend = Boolean(selectedModel) && !modelsLoading && !modelsError;
@@ -161,6 +162,7 @@ export function ChatApp() {
                 }
                 canSend={canSend}
                 onQuickAction={sendMessage}
+                onEdit={editMessage}
               />
 
               <ChatInput
