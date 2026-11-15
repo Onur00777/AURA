@@ -8,6 +8,7 @@ import { AttachmentChip } from "@/components/chat/ComposerAttachment";
 import { EditableUserMessage } from "@/components/chat/EditableUserMessage";
 import { MessageContent } from "@/components/chat/MessageContent";
 import { RetryResponse } from "@/components/chat/RetryResponse";
+import { StudyFeedback } from "@/components/chat/StudyFeedback";
 import { TypingIndicator } from "@/components/chat/TypingIndicator";
 import { WorkspaceHero } from "@/components/chat/WorkspaceHero";
 import type { ChatMessage } from "@/lib/types/api";
@@ -116,7 +117,7 @@ export function MessageList({
                       />
                     ) : (
                       <div className="rounded-2xl border border-white/[0.05] bg-transparent px-1 py-1 sm:px-0">
-                        <MessageContent content={message.content} />
+                        {message.studyStep === "feedback" ? <StudyFeedback content={message.content} /> : <MessageContent content={message.content} />}
                       </div>
                     )}
                     <CopyMessageButton
