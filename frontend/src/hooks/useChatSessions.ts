@@ -80,6 +80,7 @@ export function useChatSessions(
   const [storageTick, setStorageTick] = useState(0);
   const sessionsRef = useRef(sessions);
   const loadedModeRef = useRef<AuraMode | null>(null);
+  const activeRequestRef = useRef<symbol | null>(null);
 
   useEffect(() => {
     sessionsRef.current = sessions;
@@ -93,6 +94,9 @@ export function useChatSessions(
     loadedModeRef.current = mode;
     setError(null);
     setHydrated(true);
+    return () => {
+      activeRequestRef.current = null;
+    };
   }, [mode]);
 
   useEffect(() => {
@@ -178,37 +182,32 @@ export function useChatSessions(
     });
   }, []);
 
-  const sendMessage = useCallback(
-    async (text: string) => {
-      const trimmed = text.trim();
-      const sessionId = activeId;
-      if (!trimmed || !selectedModel || generating || !sessionId) return;
+  const generateReply = useCallback(
+    async (
+      original: ChatSession,
+      conversation: ChatMessage[],
+      title: string,
+      requestPower: AuraPower,
+      replacesHistory: boolean,
+    ) => {
+      if (!selectedModel || activeRequestRef.current || loadedModeRef.current !== mode) return;
 
-      const existing =
-        sessionsRef.current.find((s) => s.id === sessionId)?.messages ?? [];
-      const userMessage: ChatMessage = {
-        id: createId(),
-        role: "user",
-        content: trimmed,
+      const request = Symbol();
+      activeRequestRef.current = request;
+      const sessionId = original.id;
+      const updateSession = (messages: ChatMessage[], nextTitle: string) => {
+        const updatedAt = Date.now();
+        setSessions((prev) =>
+          prev.map((session) =>
+            session.id === sessionId
+              ? { ...session, title: nextTitle, messages, updatedAt }
+              : session,
+          ),
+        );
       };
-      const conversation = [...existing, userMessage];
 
-      setSessions((prev) =>
-        prev.map((session) =>
-          session.id === sessionId
-            ? {
-                ...session,
-                title:
-                  session.messages.length === 0
-                    ? titleFromMessage(trimmed)
-                    : session.title,
-                messages: conversation,
-                updatedAt: Date.now(),
-              }
-            : session,
-        ),
-      );
-
+      // Keep the saved branch until a replacement answer is available.
+      if (!replacesHistory) updateSession(conversation, title);
       setGenerating(true);
       setError(null);
 
@@ -217,34 +216,22 @@ export function useChatSessions(
           model: selectedModel,
           messages: toApiMessages(conversation),
           mode,
-          power,
+          power: requestPower,
         });
+        if (activeRequestRef.current !== request) return;
         const assistantMessage: ChatMessage = {
           id: createId(),
           role: "assistant",
           content: result.reply,
           modelUsed: result.model_used,
         };
-        const withReply = [...conversation, assistantMessage];
-        const keys = storageKeysFor(mode);
-
-        setSessions((prev) => {
-          const next = prev.map((session) =>
-            session.id === sessionId
-              ? {
-                  ...session,
-                  messages: withReply,
-                  updatedAt: Date.now(),
-                }
-              : session,
-          );
-          localStorage.setItem(keys.sessions, JSON.stringify(next));
-          return next;
-        });
+        updateSession([...conversation, assistantMessage], title);
       } catch (err) {
+        if (activeRequestRef.current !== request) return;
         const message =
           err instanceof Error ? err.message : "Chat request failed";
         setError(message);
+        if (replacesHistory) return;
         const withError: ChatMessage[] = [
           ...conversation,
           {
@@ -253,22 +240,64 @@ export function useChatSessions(
             content: `Something went wrong: ${message}`,
           },
         ];
-        setSessions((prev) =>
-          prev.map((session) =>
-            session.id === sessionId
-              ? {
-                  ...session,
-                  messages: withError,
-                  updatedAt: Date.now(),
-                }
-              : session,
-          ),
-        );
+        updateSession(withError, title);
       } finally {
-        setGenerating(false);
+        if (activeRequestRef.current === request) {
+          activeRequestRef.current = null;
+          setGenerating(false);
+        }
       }
     },
-    [activeId, generating, mode, power, selectedModel],
+    [mode, selectedModel],
+  );
+
+  const sendMessage = useCallback(
+    async (text: string) => {
+      const content = text.trim();
+      const session = sessionsRef.current.find((item) => item.id === activeId);
+      if (!content || !session) return;
+
+      const userMessage: ChatMessage = { id: createId(), role: "user", content };
+      const title = session.messages.length ? session.title : titleFromMessage(content);
+      await generateReply(session, [...session.messages, userMessage], title, power, false);
+    },
+    [activeId, generateReply, power],
+  );
+
+  const editMessage = useCallback(
+    async (messageId: string, text: string) => {
+      const content = text.trim();
+      const session = sessionsRef.current.find((item) => item.id === activeId);
+      if (!content || !session) return;
+
+      const index = session.messages.findIndex((item) => item.id === messageId);
+      const message = session.messages[index];
+      if (message?.role !== "user") return;
+
+      const conversation = [...session.messages.slice(0, index), { ...message, content }];
+      const title = index === 0 ? titleFromMessage(content) : session.title;
+      await generateReply(session, conversation, title, power, true);
+    },
+    [activeId, generateReply, power],
+  );
+
+  const retryMessage = useCallback(
+    async (messageId: string, requestPower: AuraPower = power) => {
+      const session = sessionsRef.current.find((item) => item.id === activeId);
+      if (!session) return;
+
+      const index = session.messages.findIndex((item) => item.id === messageId);
+      if (session.messages[index]?.role !== "assistant") return;
+
+      // The answer may follow another assistant entry in restored history.
+      let userIndex = index - 1;
+      while (userIndex >= 0 && session.messages[userIndex].role !== "user") userIndex--;
+      if (userIndex < 0 || !session.messages[userIndex].content.trim()) return;
+
+      const conversation = session.messages.slice(0, userIndex + 1);
+      await generateReply(session, conversation, session.title, requestPower, true);
+    },
+    [activeId, generateReply, power],
   );
 
   return {
@@ -283,5 +312,7 @@ export function useChatSessions(
     deleteSession,
     trimOldest,
     sendMessage,
+    editMessage,
+    retryMessage,
   };
 }
